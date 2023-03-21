@@ -1,0 +1,6 @@
+# Rust
+/server/target
+
+# Vi
+*.swp
+
