@@ -17,6 +17,9 @@ struct Question {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 struct QuestionId(String);
 
+// TODO control these errors:
+// - end > vector length
+// - end > start 
 fn extract_pagination(params: HashMap<String, String>) -> Result<Pagination, Error> {
     if params.contains_key("start") && params.contains_key("end") {
         return Ok(Pagination {
@@ -40,8 +43,6 @@ async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    // TODO only the 1st param is detected:
-    // curl localhost:3030/questions?start=1&end=10
     println!("{:?}", params);
     if params.is_empty() {
         let res: Vec<Question> = store.questions.values().cloned().collect();
