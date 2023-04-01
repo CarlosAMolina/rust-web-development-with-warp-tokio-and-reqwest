@@ -73,7 +73,7 @@ async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
             error.to_string(),
             StatusCode::FORBIDDEN,
         ))
-    } else if let Some(_invalid_id) = r.find::<InvalidId>() {
+    } else if let Some(InvalidId) = r.find() {
         Ok(warp::reply::with_status(
             "No valid ID presented".to_string(),
             StatusCode::UNPROCESSABLE_ENTITY,
