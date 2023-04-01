@@ -61,8 +61,7 @@ async fn get_questions() -> Result<impl warp::Reply, warp::Rejection> {
 
 async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
     println!("{:?}", r);
-    // I think the CorsForbidden is never matched in this function.
-    // For example, with an invalid header, the previous println is not executed:
+    // Example request to call this function:
     // ```bash
     // curl -X OPTIONS localhost:3030/questions \
     //      -H "Access-Control-Request-Method: PUT" \
@@ -96,10 +95,9 @@ async fn main() {
     let get_items = warp::get()
         .and(warp::path("questions"))
         .and(warp::path::end())
-        .and_then(get_questions)
-        .recover(return_error);
+        .and_then(get_questions);
 
-    let routes = get_items.with(cors);
+    let routes = get_items.with(cors).recover(return_error);
 
     warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
 }
