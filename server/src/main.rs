@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use warp::{
-    filters::cors::CorsForbidden, http::Method, http::StatusCode, Filter, Rejection, Reply,
+    filters::cors::CorsForbidden, http::Method, http::StatusCode, reject::Reject, Filter,
+    Rejection, Reply,
 };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -16,6 +17,25 @@ struct Question {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 struct QuestionId(String);
 
+fn extract_pagination(params: HashMap<String, String>) -> Result<Pagination, Error> {
+    if params.contains_key("start") && params.contains_key("end") {
+        return Ok(Pagination {
+            start: params
+                .get("start")
+                .unwrap()
+                .parse::<usize>()
+                .map_err(Error::ParseError)?,
+            end: params
+                .get("end")
+                .unwrap()
+                .parse::<usize>()
+                .map_err(Error::ParseError)?,
+        });
+    }
+
+    Err(Error::MissingParameters)
+}
+
 async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
@@ -23,13 +43,15 @@ async fn get_questions(
     // TODO only the 1st param is detected:
     // curl localhost:3030/questions?start=1&end=10
     println!("{:?}", params);
-    let mut start = 0;
-    if let Some(n) = params.get("start") {
-        start = n.parse::<usize>().expect("Could not parse start");
+    if params.is_empty() {
+        let res: Vec<Question> = store.questions.values().cloned().collect();
+        Ok(warp::reply::json(&res))
+    } else {
+        let pagination = extract_pagination(params)?;
+        let res: Vec<Question> = store.questions.values().cloned().collect();
+        let res = &res[pagination.start..pagination.end];
+        Ok(warp::reply::json(&res))
     }
-    println!("{}", start);
-    let res: Vec<Question> = store.questions.values().cloned().collect();
-    Ok(warp::reply::json(&res))
 }
 
 async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
@@ -54,6 +76,12 @@ async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
     }
 }
 
+#[derive(Debug)]
+struct Pagination {
+    start: usize,
+    end: usize,
+}
+
 #[derive(Clone)]
 struct Store {
     questions: HashMap<QuestionId, Question>,
@@ -71,6 +99,25 @@ impl Store {
         serde_json::from_str(file).expect("can't read questions.json")
     }
 }
+
+#[derive(Debug)]
+enum Error {
+    ParseError(std::num::ParseIntError),
+    MissingParameters,
+}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            Error::ParseError(ref err) => {
+                write!(f, "Cannot parse parameter: {}", err)
+            }
+            Error::MissingParameters => write!(f, "Missing parameter"),
+        }
+    }
+}
+
+impl Reject for Error {}
 
 #[tokio::main]
 async fn main() {
