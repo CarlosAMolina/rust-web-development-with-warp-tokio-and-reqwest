@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::io::{Error, ErrorKind};
 use std::str::FromStr;
 
@@ -15,7 +16,7 @@ struct Question {
     tags: Option<Vec<String>>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
 struct QuestionId(String);
 
 impl FromStr for QuestionId {
@@ -56,6 +57,23 @@ async fn get_questions() -> Result<impl warp::Reply, warp::Rejection> {
     match question.id.0.parse::<i32>() {
         Err(_) => Err(warp::reject::custom(InvalidId)),
         Ok(_) => Ok(warp::reply::json(&question)),
+    }
+}
+
+struct Store {
+    questions: HashMap<QuestionId, Question>,
+}
+
+impl Store {
+    fn new() -> Self {
+        Store {
+            questions: HashMap::new(),
+        }
+    }
+
+    fn add_question(mut self, question: Question) -> Self {
+        self.questions.insert(question.id.clone(), question);
+        self
     }
 }
 
