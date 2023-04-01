@@ -19,21 +19,22 @@ struct QuestionId(String);
 
 // TODO control these errors:
 // - end > vector length
-// - end > start 
 fn extract_pagination(params: HashMap<String, String>) -> Result<Pagination, Error> {
     if params.contains_key("start") && params.contains_key("end") {
-        return Ok(Pagination {
-            start: params
-                .get("start")
-                .unwrap()
-                .parse::<usize>()
-                .map_err(Error::ParseError)?,
-            end: params
-                .get("end")
-                .unwrap()
-                .parse::<usize>()
-                .map_err(Error::ParseError)?,
-        });
+        let start = params
+            .get("start")
+            .unwrap()
+            .parse::<usize>()
+            .map_err(Error::ParseError)?;
+        let end = params
+            .get("end")
+            .unwrap()
+            .parse::<usize>()
+            .map_err(Error::ParseError)?;
+        if start > end {
+            return Err(Error::StartGreaterThanEnd);
+        }
+        return Ok(Pagination { start, end });
     }
 
     Err(Error::MissingParameters)
@@ -108,17 +109,19 @@ impl Store {
 
 #[derive(Debug)]
 enum Error {
-    ParseError(std::num::ParseIntError),
+    StartGreaterThanEnd,
     MissingParameters,
+    ParseError(std::num::ParseIntError),
 }
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
+            Error::StartGreaterThanEnd => write!(f, "The start is greater than the end"),
+            Error::MissingParameters => write!(f, "Missing parameter"),
             Error::ParseError(ref err) => {
                 write!(f, "Cannot parse parameter: {}", err)
             }
-            Error::MissingParameters => write!(f, "Missing parameter"),
         }
     }
 }
