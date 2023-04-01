@@ -19,7 +19,7 @@ struct QuestionId(String);
 
 fn extract_pagination(
     params: HashMap<String, String>,
-    res: &Vec<Question>,
+    questions_length: usize,
 ) -> Result<Pagination, Error> {
     if params.contains_key("start") && params.contains_key("end") {
         let start = params
@@ -32,11 +32,11 @@ fn extract_pagination(
             .unwrap()
             .parse::<usize>()
             .map_err(Error::ParseError)?;
-        if start > end {
+        if start > questions_length {
             return Err(Error::StartGreaterThanEnd);
         }
-        if end > res.len() {
-            end = res.len();
+        if end > questions_length {
+            end = questions_length;
         }
         return Ok(Pagination { start, end });
     }
@@ -54,7 +54,7 @@ async fn get_questions(
         Ok(warp::reply::json(&res))
     } else {
         let res: Vec<Question> = store.questions.values().cloned().collect();
-        let pagination = extract_pagination(params, &res)?;
+        let pagination = extract_pagination(params, res.len())?;
         let res = &res[pagination.start..pagination.end];
         Ok(warp::reply::json(&res))
     }
