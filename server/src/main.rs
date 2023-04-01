@@ -2,13 +2,13 @@ use std::collections::HashMap;
 use std::io::{Error, ErrorKind};
 use std::str::FromStr;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use warp::{
     filters::cors::CorsForbidden, http::Method, http::StatusCode, reject::Reject, Filter,
     Rejection, Reply,
 };
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Question {
     id: QuestionId,
     title: String,
@@ -16,7 +16,7 @@ struct Question {
     tags: Option<Vec<String>>,
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 struct QuestionId(String);
 
 impl FromStr for QuestionId {
@@ -67,14 +67,15 @@ struct Store {
 impl Store {
     fn new() -> Self {
         Store {
-            questions: HashMap::new(),
+            questions: Self::init(),
         }
     }
 
-    fn add_question(mut self, question: Question) -> Self {
-        self.questions.insert(question.id.clone(), question);
-        self
+    fn init() -> HashMap<QuestionId, Question> {
+        let file = include_str!("../question.json");
+        serde_json::from_str(file).expect("can't read questions.json")
     }
+
 }
 
 async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
