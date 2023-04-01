@@ -17,22 +17,26 @@ struct Question {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 struct QuestionId(String);
 
-// TODO control these errors:
-// - end > vector length
-fn extract_pagination(params: HashMap<String, String>) -> Result<Pagination, Error> {
+fn extract_pagination(
+    params: HashMap<String, String>,
+    res: &Vec<Question>,
+) -> Result<Pagination, Error> {
     if params.contains_key("start") && params.contains_key("end") {
         let start = params
             .get("start")
             .unwrap()
             .parse::<usize>()
             .map_err(Error::ParseError)?;
-        let end = params
+        let mut end = params
             .get("end")
             .unwrap()
             .parse::<usize>()
             .map_err(Error::ParseError)?;
         if start > end {
             return Err(Error::StartGreaterThanEnd);
+        }
+        if end > res.len() {
+            end = res.len();
         }
         return Ok(Pagination { start, end });
     }
@@ -49,8 +53,8 @@ async fn get_questions(
         let res: Vec<Question> = store.questions.values().cloned().collect();
         Ok(warp::reply::json(&res))
     } else {
-        let pagination = extract_pagination(params)?;
         let res: Vec<Question> = store.questions.values().cloned().collect();
+        let pagination = extract_pagination(params, &res)?;
         let res = &res[pagination.start..pagination.end];
         Ok(warp::reply::json(&res))
     }
