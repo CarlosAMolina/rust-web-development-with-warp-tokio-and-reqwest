@@ -1,3 +1,11 @@
+call-return-error:
+	curl \
+		-X OPTIONS localhost:3030/questions \
+		-H "Access-Control-Request-Method: PUT" \
+		-H "Access-Control-Request-Headers: invalid-header" \
+		-H "Origin: https://not-origin.io" \
+		-verbose
+
 get-questions:
 	curl "localhost:3030/questions?start=0&end=200"
 
