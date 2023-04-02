@@ -1,6 +1,9 @@
 get-questions:
 	curl "localhost:3030/questions?start=0&end=200"
 
+get-question:
+	curl "localhost:3030/questions/1"
+
 add-question:
 	curl \
 		--location \
