@@ -130,10 +130,30 @@ async fn add_answer(
     // Change the route for answers, and use /questions/:questionId/answers instead.
     // get answers
     if params.contains_key("content") && params.contains_key("questionId") {
+        if let Some(content) = params.get("content") {
+            if content.to_string().is_empty() {
+                return Ok(warp::reply::with_status(
+                    "Empty parameter: content",
+                    StatusCode::RANGE_NOT_SATISFIABLE,
+                ));
+            }
+        }
+        if let Some(question_id) = params.get("questionId") {
+            if question_id.to_string().is_empty() {
+                return Ok(warp::reply::with_status(
+                    "Empty parameter: questionId",
+                    StatusCode::RANGE_NOT_SATISFIABLE,
+                ));
+            }
+        }
+        //match params.get("content") {
+        //    Some(content) => println!("si"),
+        //    None => println!("no")
+        //}
         let answer = Answer {
             id: AnswerId("1".to_string()),
-            content: params.get("content").unwrap().to_string(),
-            question_id: QuestionId(params.get("questionId").unwrap().to_string()),
+            content: params["content"].to_string(),
+            question_id: QuestionId(params["questionId"].to_string()),
         };
         store
             .answers
