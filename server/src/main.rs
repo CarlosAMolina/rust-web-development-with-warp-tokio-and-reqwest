@@ -80,15 +80,9 @@ async fn get_answers_of_question(
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     match store.questions.read().await.get(&QuestionId(id)) {
-        // TODO improve
         Some(question) =>  {
             let answers_all: Vec<Answer> = store.answers.read().await.values().cloned().collect();
-            let mut answers: Vec<Answer> = vec![];
-            for answer in answers_all.iter() {
-                if answer.question_id == question.id {
-                    answers.push(answer.clone());
-                }
-            }
+            let answers: Vec<Answer> = answers_all.iter().filter(|answer| answer.question_id == question.id).cloned().collect();
             Ok(warp::reply::json(&answers))
         },
         None => return Err(warp::reject::custom(Error::QuestionNotFound)),
