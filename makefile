@@ -4,7 +4,7 @@ get-questions:
 add-question:
 	curl \
 		--location \
-		--request POST "localhost:3030/questions" \
+		--request POST 'localhost:3030/questions' \
 		--header 'Content-Type: application/json' \
 		--data-raw '{"id": "2", "title": "New question", "content": "How does this work again?"}'
 
