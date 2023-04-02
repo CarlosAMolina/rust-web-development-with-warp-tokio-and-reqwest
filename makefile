@@ -15,3 +15,9 @@ update-question:
 		--header 'Content-Type: application/json' \
 		--data-raw '{ "id": "1", "title": "NEW TITLE", "content": "OLD CONTENT" }'
 
+delete-question:
+	curl \
+		--location \
+		--request DELETE 'localhost:3030/questions/1' \
+		--header 'Content-Type: application/json'
+
