@@ -159,7 +159,6 @@ async fn add_answer(
                 let answer_id = answer.id.0.parse::<usize>().unwrap();
                 if answer_id > max_answer_id {
                     max_answer_id = answer_id;
-                    // TODO check this value is used at `max_answer_id + 1`
                 }
             }
             max_answer_id + 1
