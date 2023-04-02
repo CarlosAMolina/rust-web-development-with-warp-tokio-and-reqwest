@@ -80,6 +80,7 @@ async fn get_answers_of_question(
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     match store.questions.read().await.get(&QuestionId(id)) {
+        // TODO improve
         Some(question) =>  {
             let answers_all: Vec<Answer> = store.answers.read().await.values().cloned().collect();
             let mut answers: Vec<Answer> = vec![];
@@ -93,7 +94,6 @@ async fn get_answers_of_question(
         None => return Err(warp::reject::custom(Error::QuestionNotFound)),
     }
 }
-
 
 async fn get_questions(
     params: HashMap<String, String>,
@@ -180,18 +180,14 @@ async fn add_answer(
         None => return Err(warp::reject::custom(Error::MissingParameters))
     }
     let answer_id = {
-        let answers: Vec<Answer> = store.answers.read().await.values().cloned().collect();
-        if answers.is_empty() {
+        let answer_ids: Vec<AnswerId> = store.answers.read().await.keys().cloned().collect();
+        if answer_ids.is_empty() {
             0
         }
         else {
-            let mut max_answer_id = 0;
-            for answer in answers.iter() {
-                let answer_id = answer.id.0.parse::<usize>().unwrap();
-                if answer_id > max_answer_id {
-                    max_answer_id = answer_id;
-                }
-            }
+            let mut answer_ids_usize: Vec<usize> = answer_ids.iter().map(|answer_id| answer_id.0.parse::<usize>().unwrap()).collect();
+            answer_ids_usize.sort_unstable();
+            let max_answer_id = answer_ids_usize[answer_ids_usize.len()-1];
             max_answer_id + 1
         }
     };
