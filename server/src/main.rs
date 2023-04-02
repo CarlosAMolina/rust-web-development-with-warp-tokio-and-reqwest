@@ -124,46 +124,43 @@ async fn add_answer(
     params: HashMap<String, String>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     // TODO 
-    // replace unwrap with match to return error for each missing parameter
     // Create a random, unique ID instead of the one by hand.
     // Check whether a question exists that we want to post an answer to.
     // Change the route for answers, and use /questions/:questionId/answers instead.
     // get answers
-    if params.contains_key("content") && params.contains_key("questionId") {
-        if let Some(content) = params.get("content") {
+    match params.get("content") {
+        Some(content) => {
             if content.to_string().is_empty() {
                 return Ok(warp::reply::with_status(
                     "Empty parameter: content",
                     StatusCode::RANGE_NOT_SATISFIABLE,
                 ));
             }
-        }
-        if let Some(question_id) = params.get("questionId") {
+        },
+        None => return Err(warp::reject::custom(Error::MissingParameters))
+    }
+    match params.get("questionId") {
+        Some(question_id) => {
             if question_id.to_string().is_empty() {
                 return Ok(warp::reply::with_status(
                     "Empty parameter: questionId",
                     StatusCode::RANGE_NOT_SATISFIABLE,
                 ));
             }
-        }
-        //match params.get("content") {
-        //    Some(content) => println!("si"),
-        //    None => println!("no")
-        //}
-        let answer = Answer {
-            id: AnswerId("1".to_string()),
-            content: params["content"].to_string(),
-            question_id: QuestionId(params["questionId"].to_string()),
-        };
-        store
-            .answers
-            .write()
-            .await
-            .insert(answer.id.clone(), answer);
-        return Ok(warp::reply::with_status("Answer added", StatusCode::OK))
+        },
+        None => return Err(warp::reject::custom(Error::MissingParameters))
     }
-    return Err(warp::reject::custom(Error::MissingParameters))
-
+    let answer = Answer {
+        id: AnswerId("1".to_string()),
+        content: params["content"].to_string(),
+        question_id: QuestionId(params["questionId"].to_string()),
+    };
+    store
+        .answers
+        .write()
+        .await
+        .insert(answer.id.clone(), answer);
+    return Ok(warp::reply::with_status("Answer added", StatusCode::OK))
 }
 
 async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
