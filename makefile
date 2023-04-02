@@ -6,6 +6,9 @@ call-return-error:
 		-H "Origin: https://not-origin.io" \
 		-verbose
 
+get-answers:
+	curl "localhost:3030/answers?start=0&end=200"
+
 get-questions:
 	curl "localhost:3030/questions?start=0&end=200"
 

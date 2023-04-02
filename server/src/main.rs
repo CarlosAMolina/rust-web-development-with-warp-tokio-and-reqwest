@@ -36,7 +36,7 @@ struct Answer {
 
 fn extract_pagination(
     params: HashMap<String, String>,
-    questions_length: usize,
+    response_length: usize,
 ) -> Result<Pagination, Error> {
     if params.contains_key("start") && params.contains_key("end") {
         let start = params
@@ -49,15 +49,30 @@ fn extract_pagination(
             .unwrap()
             .parse::<usize>()
             .map_err(Error::ParseError)?;
-        if start > questions_length {
+        if start > response_length {
             return Err(Error::StartGreaterThanEnd);
         }
-        if end > questions_length {
-            end = questions_length;
+        if end > response_length {
+            end = response_length;
         }
         return Ok(Pagination { start, end });
     }
     Err(Error::MissingParameters)
+}
+
+async fn get_answers(
+    params: HashMap<String, String>,
+    store: Store,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    if params.is_empty() {
+        let res: Vec<Answer> = store.answers.read().await.values().cloned().collect();
+        Ok(warp::reply::json(&res))
+    } else {
+        let res: Vec<Answer> = store.answers.read().await.values().cloned().collect();
+        let pagination = extract_pagination(params, res.len())?;
+        let res = &res[pagination.start..pagination.end];
+        Ok(warp::reply::json(&res))
+    }
 }
 
 async fn get_questions(
@@ -273,6 +288,13 @@ async fn main() {
         .allow_header("content-type")
         .allow_methods(&[Method::PUT, Method::DELETE, Method::GET, Method::POST]);
 
+    let get_answers = warp::get()
+        .and(warp::path("answers"))
+        .and(warp::path::end())
+        .and(warp::query())
+        .and(store_filter.clone())
+        .and_then(get_answers);
+
     let get_questions = warp::get()
         .and(warp::path("questions"))
         .and(warp::path::end())
@@ -316,7 +338,8 @@ async fn main() {
         .and(warp::body::form())
         .and_then(add_answer);
 
-    let routes = get_questions
+    let routes = get_answers
+        .or(get_questions)
         .or(get_question)
         .or(add_question)
         .or(add_answer)
