@@ -35,7 +35,8 @@ Example: Actix Web, Rocket, Warp, Axum.
 
 ```bash
 cargo run
-curl "localhost:3030/questions?start=1&end=200"
+make get-questions
+make add-question
 ```
 
 ## Resources
