@@ -9,6 +9,9 @@ call-return-error:
 get-answers:
 	curl "localhost:3030/answers?start=0&end=200"
 
+get-answers-of-question:
+	curl "localhost:3030/questions/1/answers"
+
 get-questions:
 	curl "localhost:3030/questions?start=0&end=200"
 

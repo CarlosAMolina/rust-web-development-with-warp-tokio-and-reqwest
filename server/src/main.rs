@@ -75,6 +75,26 @@ async fn get_answers(
     }
 }
 
+async fn get_answers_of_question(
+    id: String,
+    store: Store,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    match store.questions.read().await.get(&QuestionId(id)) {
+        Some(question) =>  {
+            let answers_all: Vec<Answer> = store.answers.read().await.values().cloned().collect();
+            let mut answers: Vec<Answer> = vec![];
+            for answer in answers_all.iter() {
+                if answer.question_id == question.id {
+                    answers.push(answer.clone());
+                }
+            }
+            Ok(warp::reply::json(&answers))
+        },
+        None => return Err(warp::reject::custom(Error::QuestionNotFound)),
+    }
+}
+
+
 async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
@@ -133,14 +153,10 @@ async fn delete_question(id: String, store: Store) -> Result<impl warp::Reply, w
     }
 }
 
-
 async fn add_answer(
     store: Store,
     params: HashMap<String, String>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    // TODO 
-    // Change the route for answers, and use /questions/:questionId/answers instead.
-    // get answers
     match params.get("content") {
         Some(content) => {
             if content.to_string().is_empty() {
@@ -295,6 +311,14 @@ async fn main() {
         .and(store_filter.clone())
         .and_then(get_answers);
 
+    let get_answers_of_question = warp::get()
+        .and(warp::path("questions"))
+        .and(warp::path::param::<String>())
+        .and(warp::path("answers"))
+        .and(warp::path::end())
+        .and(store_filter.clone())
+        .and_then(get_answers_of_question);
+
     let get_questions = warp::get()
         .and(warp::path("questions"))
         .and(warp::path::end())
@@ -339,6 +363,7 @@ async fn main() {
         .and_then(add_answer);
 
     let routes = get_answers
+        .or(get_answers_of_question)
         .or(get_questions)
         .or(get_question)
         .or(add_question)
