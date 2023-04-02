@@ -124,7 +124,6 @@ async fn add_answer(
     params: HashMap<String, String>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     // TODO 
-    // Create a random, unique ID instead of the one by hand.
     // Check whether a question exists that we want to post an answer to.
     // Change the route for answers, and use /questions/:questionId/answers instead.
     // get answers
@@ -150,8 +149,24 @@ async fn add_answer(
         },
         None => return Err(warp::reject::custom(Error::MissingParameters))
     }
+    let answer_id = {
+        let answers: Vec<Answer> = store.answers.read().await.values().cloned().collect();
+        if answers.is_empty() {
+            0
+        }
+        else {
+            let mut max_answer_id = 0;
+            for answer in answers.iter() {
+                let answer_id = answer.id.0.parse::<usize>().unwrap();
+                if answer_id > max_answer_id {
+                    max_answer_id = answer_id;
+                }
+            }
+            max_answer_id + 1
+        }
+    };
     let answer = Answer {
-        id: AnswerId("1".to_string()),
+        id: AnswerId(answer_id.to_string()),
         content: params["content"].to_string(),
         question_id: QuestionId(params["questionId"].to_string()),
     };
