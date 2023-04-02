@@ -8,3 +8,10 @@ add-question:
 		--header 'Content-Type: application/json' \
 		--data-raw '{"id": "2", "title": "New question", "content": "How does this work again?"}'
 
+update-question:
+	curl \
+		--location \
+		--request PUT 'localhost:3030/questions/1' \
+		--header 'Content-Type: application/json' \
+		--data-raw '{ "id": "1", "title": "NEW TITLE", "content": "OLD CONTENT" }'
+
