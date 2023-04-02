@@ -57,7 +57,6 @@ fn extract_pagination(
         }
         return Ok(Pagination { start, end });
     }
-
     Err(Error::MissingParameters)
 }
 
@@ -96,7 +95,6 @@ async fn add_question(
         .write()
         .await
         .insert(question.id.clone(), question);
-
     Ok(warp::reply::with_status("Question added", StatusCode::OK))
 }
 
@@ -128,25 +126,25 @@ async fn add_answer(
     // TODO 
     // replace unwrap with match to return error for each missing parameter
     // Create a random, unique ID instead of the one by hand.
-    // Add error handling if the fields that we require are not present.
     // Check whether a question exists that we want to post an answer to.
     // Change the route for answers, and use /questions/:questionId/answers instead.
     // get answers
-    let answer = Answer {
-        id: AnswerId("1".to_string()),
-        content: params.get("content").unwrap().to_string(),
-        question_id: QuestionId(params.get("questionId").unwrap().to_string()),
-    };
+    if params.contains_key("content") && params.contains_key("questionId") {
+        let answer = Answer {
+            id: AnswerId("1".to_string()),
+            content: params.get("content").unwrap().to_string(),
+            question_id: QuestionId(params.get("questionId").unwrap().to_string()),
+        };
+        store
+            .answers
+            .write()
+            .await
+            .insert(answer.id.clone(), answer);
+        return Ok(warp::reply::with_status("Answer added", StatusCode::OK))
+    }
+    return Err(warp::reject::custom(Error::MissingParameters))
 
-    store
-        .answers
-        .write()
-        .await
-        .insert(answer.id.clone(), answer);
-
-    Ok(warp::reply::with_status("Answer added", StatusCode::OK))
 }
-
 
 async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
     println!("{:?}", r);
