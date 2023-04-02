@@ -4,8 +4,11 @@ use tokio::sync::RwLock;
 
 use serde::{Deserialize, Serialize};
 use warp::{
-    filters::cors::CorsForbidden, http::Method, http::StatusCode, reject::Reject, Filter,
-    Rejection, Reply,
+    filters::{body::BodyDeserializeError, cors::CorsForbidden},
+    http::Method,
+    http::StatusCode,
+    reject::Reject,
+    Filter, Rejection, Reply,
 };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -107,6 +110,11 @@ async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
         Ok(warp::reply::with_status(
             error.to_string(),
             StatusCode::FORBIDDEN,
+        ))
+    } else if let Some(error) = r.find::<BodyDeserializeError>() {
+        Ok(warp::reply::with_status(
+            error.to_string(),
+            StatusCode::UNPROCESSABLE_ENTITY,
         ))
     } else {
         Ok(warp::reply::with_status(
