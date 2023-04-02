@@ -124,7 +124,6 @@ async fn add_answer(
     params: HashMap<String, String>,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     // TODO 
-    // Check whether a question exists that we want to post an answer to.
     // Change the route for answers, and use /questions/:questionId/answers instead.
     // get answers
     match params.get("content") {
@@ -160,11 +159,24 @@ async fn add_answer(
                 let answer_id = answer.id.0.parse::<usize>().unwrap();
                 if answer_id > max_answer_id {
                     max_answer_id = answer_id;
+                    // TODO check this value is used at `max_answer_id + 1`
                 }
             }
             max_answer_id + 1
         }
     };
+    let exists_question_id = {
+        let question_id = QuestionId(params["questionId"].to_string());
+        let questions: Vec<Question> = store.questions.read().await.values().cloned().collect();
+        let mut question_ids: Vec<QuestionId> = vec![];
+        for question in questions.iter() {
+            question_ids.push(question.id.clone());
+        }
+        question_ids.contains(&question_id)
+    };
+    if !exists_question_id {
+        return Err(warp::reject::custom(Error::QuestionNotFound))
+    }
     let answer = Answer {
         id: AnswerId(answer_id.to_string()),
         content: params["content"].to_string(),
@@ -180,13 +192,6 @@ async fn add_answer(
 
 async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
     println!("{:?}", r);
-    // Example request to call this function:
-    // ```bash
-    // curl -X OPTIONS localhost:3030/questions \
-    //      -H "Access-Control-Request-Method: PUT" \
-    //      -H "Access-Control-Request-Headers: invalid-header" \
-    //      -H "Origin: https://not-origin.io" -verbose
-    // ```
     if let Some(error) = r.find::<Error>() {
         Ok(warp::reply::with_status(
             error.to_string(),
