@@ -4,12 +4,22 @@ get-questions:
 get-question:
 	curl "localhost:3030/questions/1"
 
+# POST request with a JSON body
 add-question:
 	curl \
 		--location \
 		--request POST 'localhost:3030/questions' \
 		--header 'Content-Type: application/json' \
 		--data-raw '{"id": "2", "title": "New question", "content": "How does this work again?"}'
+
+# POST curl for an application/x-www-form-urlencoded request
+add-comment:
+	curl \
+		--location \
+		--request POST 'localhost:3030/comments' \
+		--header 'Content-Type: application/x-www-form-urlencoded' \
+		--data-urlencode 'content=The solution is to ...' \
+		--data-urlencode 'questionId=1'
 
 update-question:
 	curl \

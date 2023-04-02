@@ -22,6 +22,18 @@ struct Question {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 struct QuestionId(String);
 
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+struct AnswerId(String);
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+struct Answer {
+    id: AnswerId,
+    content: String,
+    question_id: QuestionId,
+}
+
+
 fn extract_pagination(
     params: HashMap<String, String>,
     questions_length: usize,
@@ -108,6 +120,34 @@ async fn delete_question(id: String, store: Store) -> Result<impl warp::Reply, w
     }
 }
 
+
+async fn add_answer(
+    store: Store,
+    params: HashMap<String, String>,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    // TODO 
+    // replace unwrap with match to return error for each missing parameter
+    // Create a random, unique ID instead of the one by hand.
+    // Add error handling if the fields that we require are not present.
+    // Check whether a question exists that we want to post an answer to.
+    // Change the route for answers, and use /questions/:questionId/answers instead.
+    // get answers
+    let answer = Answer {
+        id: AnswerId("1".to_string()),
+        content: params.get("content").unwrap().to_string(),
+        question_id: QuestionId(params.get("questionId").unwrap().to_string()),
+    };
+
+    store
+        .answers
+        .write()
+        .await
+        .insert(answer.id.clone(), answer);
+
+    Ok(warp::reply::with_status("Answer added", StatusCode::OK))
+}
+
+
 async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
     println!("{:?}", r);
     // Example request to call this function:
@@ -149,17 +189,19 @@ struct Pagination {
 #[derive(Clone)]
 struct Store {
     questions: Arc<RwLock<HashMap<QuestionId, Question>>>,
+    answers: Arc<RwLock<HashMap<AnswerId, Answer>>>,
 }
 
 impl Store {
     fn new() -> Self {
         Store {
             questions: Arc::new(RwLock::new(Self::init())),
+            answers: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
     fn init() -> HashMap<QuestionId, Question> {
-        let file = include_str!("../question.json");
+        let file = include_str!("../questions.json");
         serde_json::from_str(file).expect("can't read questions.json")
     }
 }
@@ -233,9 +275,17 @@ async fn main() {
         .and(store_filter.clone())
         .and_then(delete_question);
 
+    let add_answer = warp::post()
+        .and(warp::path("comments"))
+        .and(warp::path::end())
+        .and(store_filter.clone())
+        .and(warp::body::form())
+        .and_then(add_answer);
+
     let routes = get_questions
         .or(get_question)
         .or(add_question)
+        .or(add_answer)
         .or(update_question)
         .or(delete_question)
         .with(cors)
