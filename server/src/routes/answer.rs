@@ -1,7 +1,7 @@
+use handle_errors::Error;
 use std::collections::HashMap;
 use warp::http::StatusCode;
 
-use crate::error;
 use crate::store::Store;
 use crate::types::pagination::extract_pagination;
 use crate::types::{
@@ -23,7 +23,7 @@ pub async fn add_answer(
                 ));
             }
         }
-        None => return Err(warp::reject::custom(error::Error::MissingParameters)),
+        None => return Err(warp::reject::custom(Error::MissingParameters)),
     }
     match params.get("questionId") {
         Some(question_id) => {
@@ -34,7 +34,7 @@ pub async fn add_answer(
                 ));
             }
         }
-        None => return Err(warp::reject::custom(error::Error::MissingParameters)),
+        None => return Err(warp::reject::custom(Error::MissingParameters)),
     }
     let answer_id = {
         let answer_ids: Vec<AnswerId> = store.answers.read().await.keys().cloned().collect();
@@ -60,7 +60,7 @@ pub async fn add_answer(
         question_ids.contains(&question_id)
     };
     if !exists_question_id {
-        return Err(warp::reject::custom(error::Error::QuestionNotFound));
+        return Err(warp::reject::custom(Error::QuestionNotFound));
     }
     let answer = Answer {
         id: AnswerId(answer_id.to_string()),
@@ -105,7 +105,7 @@ pub async fn get_answers_of_question(
                 .collect();
             Ok(warp::reply::json(&answers))
         }
-        None => return Err(warp::reject::custom(error::Error::QuestionNotFound)),
+        None => return Err(warp::reject::custom(Error::QuestionNotFound)),
     }
 }
 
