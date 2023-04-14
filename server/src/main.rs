@@ -1,3 +1,7 @@
+#![warn(
+clippy::all,
+)]
+
 use handle_errors::return_error;
 use warp::{http::Method, Filter};
 

@@ -72,7 +72,7 @@ pub async fn add_answer(
         .write()
         .await
         .insert(answer.id.clone(), answer);
-    return Ok(warp::reply::with_status("Answer added", StatusCode::OK));
+    Ok(warp::reply::with_status("Answer added", StatusCode::OK))
 }
 
 
@@ -105,7 +105,7 @@ pub async fn get_answers_of_question(
                 .collect();
             Ok(warp::reply::json(&answers))
         }
-        None => return Err(warp::reject::custom(Error::QuestionNotFound)),
+        None => Err(warp::reject::custom(Error::QuestionNotFound)),
     }
 }
 
