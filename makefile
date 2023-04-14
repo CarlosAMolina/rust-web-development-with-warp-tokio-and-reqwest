@@ -1,3 +1,6 @@
+doc:
+	cd server && cargo doc && cargo doc --open
+
 call-return-error:
 	curl \
 		-X OPTIONS localhost:3030/questions \
