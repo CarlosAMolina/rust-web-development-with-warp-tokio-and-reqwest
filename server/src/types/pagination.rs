@@ -32,7 +32,7 @@ pub fn extract_pagination(
     // Could be improved in the future
     if params.contains_key("start") && params.contains_key("end") {
         // Takes the "start" parameter in the query
-    // and tries to convert it to a number
+        // and tries to convert it to a number
         let start = params
             .get("start")
             .unwrap()

@@ -26,4 +26,3 @@ impl Store {
         serde_json::from_str(file).expect("can't read questions.json")
     }
 }
-

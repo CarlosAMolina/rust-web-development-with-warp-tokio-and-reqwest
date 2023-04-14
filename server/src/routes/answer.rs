@@ -9,7 +9,6 @@ use crate::types::{
     question::{Question, QuestionId},
 };
 
-
 pub async fn add_answer(
     store: Store,
     params: HashMap<String, String>,
@@ -75,7 +74,6 @@ pub async fn add_answer(
     Ok(warp::reply::with_status("Answer added", StatusCode::OK))
 }
 
-
 pub async fn get_answers(
     params: HashMap<String, String>,
     store: Store,
@@ -108,4 +106,3 @@ pub async fn get_answers_of_question(
         None => Err(warp::reject::custom(Error::QuestionNotFound)),
     }
 }
-

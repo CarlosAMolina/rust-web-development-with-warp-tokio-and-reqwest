@@ -1,6 +1,4 @@
-#![warn(
-clippy::all,
-)]
+#![warn(clippy::all)]
 
 use handle_errors::return_error;
 use warp::{http::Method, Filter};
@@ -8,7 +6,6 @@ use warp::{http::Method, Filter};
 mod routes;
 mod store;
 mod types;
-
 
 #[tokio::main]
 async fn main() {
