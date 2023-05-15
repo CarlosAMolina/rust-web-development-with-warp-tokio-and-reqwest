@@ -11,11 +11,6 @@ mod types;
 async fn main() {
     log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
 
-    // TODO rm
-    log::error!("This is an error!");
-    log::info!("This is info!");
-    log::warn!("This is a warning!");
-
     let log = warp::log::custom(|info| {
         log::info!(
             "{} {} {} {:?} from {} with {:?}",
@@ -30,6 +25,8 @@ async fn main() {
 
     let store = store::Store::new();
     let store_filter = warp::any().map(move || store.clone());
+
+    let id_filter = warp::any().map(|| uuid::Uuid::new_v4().to_string());
 
     let cors = warp::cors()
         .allow_any_origin()
@@ -56,6 +53,7 @@ async fn main() {
         .and(warp::path::end())
         .and(warp::query())
         .and(store_filter.clone())
+        .and(id_filter)
         .and_then(routes::question::get_questions);
 
     let get_question = warp::get()

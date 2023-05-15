@@ -38,17 +38,18 @@ pub async fn get_question(id: String, store: Store) -> Result<impl warp::Reply, 
 pub async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
+    id: String,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    log::info!("Start querying questions");
+    log::info!("{} Start querying questions", id);
     println!("{:?}", params);
     if params.is_empty() {
-        log::info!("No pagination used");
+        log::info!("{} No pagination used", id);
         let res: Vec<Question> = store.questions.read().await.values().cloned().collect();
         Ok(warp::reply::json(&res))
     } else {
         let res: Vec<Question> = store.questions.read().await.values().cloned().collect();
         let pagination = extract_pagination(params, res.len())?;
-        log::info!("Pagination set {:?}", &pagination);
+        log::info!("{} Pagination set {:?}", id, &pagination);
         let res = &res[pagination.start..pagination.end];
         Ok(warp::reply::json(&res))
     }
