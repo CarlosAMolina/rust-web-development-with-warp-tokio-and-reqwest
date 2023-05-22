@@ -41,7 +41,8 @@ pub async fn get_question(id: String, store: Store) -> Result<impl warp::Reply, 
 // when the function is called.
 // All tracing events inside this function will be
 // assigned to this span.
-#[instrument]
+// This genereates more logs with more data.
+//#[instrument]
 pub async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
