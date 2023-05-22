@@ -1,10 +1,12 @@
-use handle_errors::Error;
 use std::collections::HashMap;
+
+use tracing::{info, instrument};
 use warp::http::StatusCode;
 
 use crate::store::Store;
 use crate::types::pagination::extract_pagination;
 use crate::types::question::{Question, QuestionId};
+use handle_errors::Error;
 
 pub async fn add_question(
     store: Store,
@@ -35,21 +37,27 @@ pub async fn get_question(id: String, store: Store) -> Result<impl warp::Reply, 
     }
 }
 
+// The instrument macro opens and closes a span
+// when the function is called.
+// All tracing events inside this function will be
+// assigned to this span.
+#[instrument]
 pub async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
-    id: String,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    log::info!("{} Start querying questions", id);
+    info!("querying questions");
     println!("{:?}", params);
     if params.is_empty() {
-        log::info!("{} No pagination used", id);
+        info!("no pagination used");
+        info!(pagination = false);
         let res: Vec<Question> = store.questions.read().await.values().cloned().collect();
         Ok(warp::reply::json(&res))
     } else {
         let res: Vec<Question> = store.questions.read().await.values().cloned().collect();
         let pagination = extract_pagination(params, res.len())?;
-        log::info!("{} Pagination set {:?}", id, &pagination);
+        info!("Pagination set {:?}", &pagination);
+        info!(pagination = true);
         let res = &res[pagination.start..pagination.end];
         Ok(warp::reply::json(&res))
     }
