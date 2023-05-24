@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use tracing::{info, instrument};
+//use tracing::{info, instrument};
+use tracing::info;
 use warp::http::StatusCode;
 
 use crate::store::Store;
@@ -20,17 +21,14 @@ pub async fn add_question(
     Ok(warp::reply::with_status("Question added", StatusCode::OK))
 }
 
-pub async fn delete_question(
-    id: String,
-    store: Store,
-) -> Result<impl warp::Reply, warp::Rejection> {
+pub async fn delete_question(id: i32, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
     match store.questions.write().await.remove(&QuestionId(id)) {
         Some(_) => Ok(warp::reply::with_status("Question deleted", StatusCode::OK)),
         None => Err(warp::reject::custom(Error::QuestionNotFound)),
     }
 }
 
-pub async fn get_question(id: String, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
+pub async fn get_question(id: i32, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
     match store.questions.read().await.get(&QuestionId(id)) {
         Some(question) => Ok(warp::reply::json(&question)),
         None => Err(warp::reject::custom(Error::QuestionNotFound)),
@@ -65,7 +63,7 @@ pub async fn get_questions(
 }
 
 pub async fn update_question(
-    id: String,
+    id: i32,
     store: Store,
     question: Question,
 ) -> Result<impl warp::Reply, warp::Rejection> {

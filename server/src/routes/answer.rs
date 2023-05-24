@@ -40,17 +40,15 @@ pub async fn add_answer(
         if answer_ids.is_empty() {
             0
         } else {
-            let mut answer_ids_usize: Vec<usize> = answer_ids
-                .iter()
-                .map(|answer_id| answer_id.0.parse::<usize>().unwrap())
-                .collect();
+            let mut answer_ids_usize: Vec<i32> =
+                answer_ids.iter().map(|answer_id| answer_id.0).collect();
             answer_ids_usize.sort_unstable();
             let max_answer_id = answer_ids_usize[answer_ids_usize.len() - 1];
             max_answer_id + 1
         }
     };
     let exists_question_id = {
-        let question_id = QuestionId(params["questionId"].to_string());
+        let question_id = QuestionId(params["questionId"].parse::<i32>().unwrap());
         let questions: Vec<Question> = store.questions.read().await.values().cloned().collect();
         let mut question_ids: Vec<QuestionId> = vec![];
         for question in questions.iter() {
@@ -62,9 +60,9 @@ pub async fn add_answer(
         return Err(warp::reject::custom(Error::QuestionNotFound));
     }
     let answer = Answer {
-        id: AnswerId(answer_id.to_string()),
+        id: AnswerId(answer_id.try_into().unwrap()),
         content: params["content"].to_string(),
-        question_id: QuestionId(params["questionId"].to_string()),
+        question_id: QuestionId(params["questionId"].parse::<i32>().unwrap()),
     };
     store
         .answers
@@ -90,7 +88,7 @@ pub async fn get_answers(
 }
 
 pub async fn get_answers_of_question(
-    id: String,
+    id: i32,
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     match store.questions.read().await.get(&QuestionId(id)) {
