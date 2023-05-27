@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-//use tracing::{info, instrument};
 use tracing::{event, instrument, Level};
 use warp::http::StatusCode;
 
@@ -19,11 +18,15 @@ pub async fn add_question(
     Ok(warp::reply::with_status("Question added", StatusCode::OK))
 }
 
+// TODO check what happen y ID not in db
 pub async fn delete_question(id: i32, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
-    match store.questions.write().await.remove(&QuestionId(id)) {
-        Some(_) => Ok(warp::reply::with_status("Question deleted", StatusCode::OK)),
-        None => Err(warp::reject::custom(Error::QuestionNotFound)),
+    if let Err(e) = store.delete_question(id).await {
+        return Err(warp::reject::custom(Error::DatabaseQueryError(e)));
     }
+    Ok(warp::reply::with_status(
+        format!("Question {} deleted", id),
+        StatusCode::OK,
+    ))
 }
 
 pub async fn get_question(id: i32, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
@@ -67,9 +70,8 @@ pub async fn update_question(
     store: Store,
     question: Question,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    match store.questions.write().await.get_mut(&QuestionId(id)) {
-        Some(q) => *q = question,
-        None => return Err(warp::reject::custom(Error::QuestionNotFound)),
-    }
-    Ok(warp::reply::with_status("Question updated", StatusCode::OK))
+    let res = match store.update_question(question, id).await {
+        Ok(res) => Ok(warp::reply::json(&res)),
+        Err(e) => return Err(warp::reject::custom(Error::DatabaseQueryError(e))),
+    };
 }
