@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
 //use tracing::{info, instrument};
-use tracing::info;
+use tracing::{event, instrument, Level};
 use warp::http::StatusCode;
 
 use crate::store::Store;
-use crate::types::pagination::extract_pagination;
+use crate::types::pagination::{extract_pagination, Pagination};
 use crate::types::question::{Question, QuestionId};
 use handle_errors::Error;
 
@@ -45,20 +45,22 @@ pub async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    info!("querying questions");
-    println!("{:?}", params);
-    if params.is_empty() {
-        info!("no pagination used");
-        info!(pagination = false);
-        let res: Vec<Question> = store.questions.read().await.values().cloned().collect();
-        Ok(warp::reply::json(&res))
-    } else {
-        let res: Vec<Question> = store.questions.read().await.values().cloned().collect();
-        let pagination = extract_pagination(params, res.len())?;
-        info!("Pagination set {:?}", &pagination);
-        info!(pagination = true);
-        let res = &res[pagination.start..pagination.end];
-        Ok(warp::reply::json(&res))
+    info!("querying questions"); // TODO rm
+    println!("{:?}", params); // TODO rm
+                              // TODO use server instead practical_rust_book?
+    event!(target: "practical_rust_book", Level::INFO, "querying questions");
+    let mut pagination = Pagination::default();
+    if !params.is_empty() {
+        event!(Level::INFO, pagination = true);
+        info!("Pagination set {:?}", &pagination); // TODO rm
+        pagination = extract_pagination(params)?;
+    }
+    match store
+        .get_questions(pagination.limit, pagination.offset)
+        .await
+    {
+        Ok(res) => Ok(warp::reply::json(&res)),
+        Err(e) => return Err(warp::reject::custom(Error::DatabaseQueryError(e))),
     }
 }
 
