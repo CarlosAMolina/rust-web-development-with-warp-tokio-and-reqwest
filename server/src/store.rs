@@ -1,7 +1,7 @@
 use sqlx::postgres::{PgPool, PgPoolOptions, PgRow};
 use sqlx::Row;
 
-use crate::types::question::{Question, QuestionId};
+use crate::types::question::{NewQuestion, Question, QuestionId};
 use handle_errors::Error;
 
 #[derive(Debug, Clone)]
@@ -43,6 +43,29 @@ impl Store {
             .await
         {
             Ok(questions) => Ok(questions),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn add_question(&self, new_question: NewQuestion) -> Result<Question, sqlx::Error> {
+        match sqlx::query(
+            "INSERT INTO questions (title, content, tags) 
+           VALUES ($1, $2, $3) 
+    ",
+        )
+        .bind(new_question.title)
+        .bind(new_question.content)
+        .bind(new_question.tags)
+        .map(|row: PgRow| Question {
+            id: QuestionId(row.get("id")),
+            title: row.get("title"),
+            content: row.get("content"),
+            tags: row.get("tags"),
+        })
+        .fetch_one(&self.connection)
+        .await
+        {
+            Ok(question) => Ok(question),
             Err(e) => Err(e),
         }
     }

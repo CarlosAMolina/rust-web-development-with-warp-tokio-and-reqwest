@@ -6,18 +6,16 @@ use warp::http::StatusCode;
 
 use crate::store::Store;
 use crate::types::pagination::{extract_pagination, Pagination};
-use crate::types::question::{Question, QuestionId};
+use crate::types::question::{NewQuestion, Question, QuestionId};
 use handle_errors::Error;
 
 pub async fn add_question(
     store: Store,
-    question: Question,
+    new_question: NewQuestion,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    store
-        .questions
-        .write()
-        .await
-        .insert(question.id.clone(), question);
+    if let Err(e) = store.add_question(new_question).await {
+        return Err(warp::reject::custom(Error::DatabaseQueryError(e)));
+    }
     Ok(warp::reply::with_status("Question added", StatusCode::OK))
 }
 
