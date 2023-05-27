@@ -12,6 +12,8 @@ make connect-psql
 create database rustwebdev;
 # List databases.
 \l
+# Connect to de database.
+\c rustwebdev;
 ```
 
 ### Table creation

@@ -9,7 +9,7 @@ mod store;
 mod types;
 
 #[tokio::main]
-async fn main() -> Result<(), sqlx::Error> {
+async fn main() {
     // Set log level for the application.
     // We pass three:
     // - One for the server implementation: indicated by the
@@ -34,20 +34,20 @@ async fn main() -> Result<(), sqlx::Error> {
         .allow_header("content-type")
         .allow_methods(&[Method::PUT, Method::DELETE, Method::GET, Method::POST]);
 
-    let get_answers = warp::get()
-        .and(warp::path("answers"))
-        .and(warp::path::end())
-        .and(warp::query())
-        .and(store_filter.clone())
-        .and_then(routes::answer::get_answers);
+    // TODO let get_answers = warp::get()
+    // TODO     .and(warp::path("answers"))
+    // TODO     .and(warp::path::end())
+    // TODO     .and(warp::query())
+    // TODO     .and(store_filter.clone())
+    // TODO     .and_then(routes::answer::get_answers);
 
-    let get_answers_of_question = warp::get()
-        .and(warp::path("questions"))
-        .and(warp::path::param::<i32>())
-        .and(warp::path("answers"))
-        .and(warp::path::end())
-        .and(store_filter.clone())
-        .and_then(routes::answer::get_answers_of_question);
+    // TODO let get_answers_of_question = warp::get()
+    // TODO     .and(warp::path("questions"))
+    // TODO     .and(warp::path::param::<i32>())
+    // TODO     .and(warp::path("answers"))
+    // TODO     .and(warp::path::end())
+    // TODO     .and(store_filter.clone())
+    // TODO     .and_then(routes::answer::get_answers_of_question);
 
     let get_questions = warp::get()
         .and(warp::path("questions"))
@@ -64,12 +64,12 @@ async fn main() -> Result<(), sqlx::Error> {
             )
         }));
 
-    let get_question = warp::get()
-        .and(warp::path("questions"))
-        .and(warp::path::param::<i32>())
-        .and(warp::path::end())
-        .and(store_filter.clone())
-        .and_then(routes::question::get_question);
+    //TODO let get_question = warp::get()
+    //TODO     .and(warp::path("questions"))
+    //TODO     .and(warp::path::param::<i32>())
+    //TODO     .and(warp::path::end())
+    //TODO     .and(store_filter.clone())
+    //TODO     .and_then(routes::question::get_question);
 
     let add_question = warp::post()
         .and(warp::path("questions"))
@@ -100,11 +100,12 @@ async fn main() -> Result<(), sqlx::Error> {
         .and(warp::body::form())
         .and_then(routes::answer::add_answer);
 
-    let routes = get_answers
-        .or(get_answers_of_question)
+    let routes = add_question
+        //TODO let routes = get_answers
+        // TODO .or(get_answers_of_question)
         .or(get_questions)
-        .or(get_question)
-        .or(add_question)
+        //TODO .or(get_question)
+        //TODO .or(add_question)
         .or(add_answer)
         .or(update_question)
         .or(delete_question)

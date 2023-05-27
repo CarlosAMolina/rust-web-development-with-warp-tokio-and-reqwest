@@ -29,13 +29,6 @@ pub async fn delete_question(id: i32, store: Store) -> Result<impl warp::Reply, 
     ))
 }
 
-pub async fn get_question(id: i32, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
-    match store.questions.read().await.get(&QuestionId(id)) {
-        Some(question) => Ok(warp::reply::json(&question)),
-        None => Err(warp::reject::custom(Error::QuestionNotFound)),
-    }
-}
-
 // The instrument macro opens and closes a span
 // when the function is called.
 // All tracing events inside this function will be
@@ -46,14 +39,13 @@ pub async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    info!("querying questions"); // TODO rm
     println!("{:?}", params); // TODO rm
                               // TODO use server instead practical_rust_book?
     event!(target: "practical_rust_book", Level::INFO, "querying questions");
     let mut pagination = Pagination::default();
     if !params.is_empty() {
         event!(Level::INFO, pagination = true);
-        info!("Pagination set {:?}", &pagination); // TODO rm
+        //info!("Pagination set {:?}", &pagination); // TODO set pagintaiton values in log
         pagination = extract_pagination(params)?;
     }
     match store
@@ -71,7 +63,7 @@ pub async fn update_question(
     question: Question,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let res = match store.update_question(question, id).await {
-        Ok(res) => Ok(warp::reply::json(&res)),
+        Ok(res) => return Ok(warp::reply::json(&res)),
         Err(e) => return Err(warp::reject::custom(Error::DatabaseQueryError(e))),
     };
 }

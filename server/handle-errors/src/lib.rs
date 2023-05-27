@@ -25,9 +25,7 @@ impl std::fmt::Display for Error {
                 write!(f, "Cannot parse parameter: {}", err)
             }
             Error::StartGreaterThanEnd => write!(f, "The start is greater than the end"),
-            Error::DatabaseQueryError => {
-write!(f, "Query could not be executed", e)
-},
+            Error::DatabaseQueryError(ref err) => write!(f, "Query could not be executed: {}", err),
         }
     }
 }

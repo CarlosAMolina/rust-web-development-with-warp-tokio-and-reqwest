@@ -47,8 +47,10 @@ pub fn extract_pagination(params: HashMap<String, String>) -> Result<Pagination,
             .unwrap()
             .parse::<u32>()
             .map_err(Error::ParseError)?;
-        if offset > limit {
-            return Err(Error::StartGreaterThanEnd);
+        if let Some(limit_u32) = limit {
+            if offset > limit_u32 {
+                return Err(Error::StartGreaterThanEnd);
+            }
         }
         return Ok(Pagination { limit, offset });
     }
