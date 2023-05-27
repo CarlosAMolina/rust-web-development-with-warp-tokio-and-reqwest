@@ -5,6 +5,7 @@ use warp::{
     Rejection, Reply,
 };
 
+use sqlx::error::Error as SqlxError;
 
 #[derive(Debug)]
 pub enum Error {
@@ -12,6 +13,7 @@ pub enum Error {
     ParseError(std::num::ParseIntError),
     QuestionNotFound,
     StartGreaterThanEnd,
+    DatabaseQueryError(SqlxError),
 }
 
 impl std::fmt::Display for Error {
@@ -23,6 +25,9 @@ impl std::fmt::Display for Error {
                 write!(f, "Cannot parse parameter: {}", err)
             }
             Error::StartGreaterThanEnd => write!(f, "The start is greater than the end"),
+            Error::DatabaseQueryError => {
+write!(f, "Query could not be executed", e)
+},
         }
     }
 }

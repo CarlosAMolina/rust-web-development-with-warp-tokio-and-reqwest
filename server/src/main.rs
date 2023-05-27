@@ -9,15 +9,14 @@ mod store;
 mod types;
 
 #[tokio::main]
-async fn main() -> Result<(), sqlx::Error>{
+async fn main() -> Result<(), sqlx::Error> {
     // Set log level for the application.
     // We pass three:
     // - One for the server implementation: indicated by the
     // application name (server) set in Cargo.toml.
     // - One for Warp.
-    let log_filter = std::env::var("RUST_LOG").unwrap_or_else(|_| {
-        "handle_errors=warn,server=warn,warp=warn".to_owned()
-    });
+    let log_filter = std::env::var("RUST_LOG")
+        .unwrap_or_else(|_| "handle_errors=warn,server=warn,warp=warn".to_owned());
     // "postgres://username:password@localhost:5432/rustwebdev"
     let store = store::Store::new("postgres://postgres:pw@localhost:5432/rustwebdev").await;
     let store_filter = warp::any().map(move || store.clone());
