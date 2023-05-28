@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::env;
 
 use tracing::{event, instrument, Level};
 use warp::http::StatusCode;
@@ -11,6 +12,18 @@ pub async fn add_question(
     store: Store,
     new_question: NewQuestion,
 ) -> Result<impl warp::Reply, warp::Rejection> {
+    const ENV_VARIABLE: &str = "BAD_WORDS_API_KEY";
+    let api_key = env::var(ENV_VARIABLE).expect(&format!("env variable {} not set", ENV_VARIABLE));
+    let client = reqwest::Client::new();
+    let res = client
+        .post("https://api.apilayer.com/bad_words?censor_character=*")
+        .header("apikey", api_key)
+        .body("a list with shit words")
+        .send()
+        .await?
+        .text()
+        .await?;
+    println!("{}", res); // TODO rm
     match store.add_question(new_question).await {
         Ok(_) => Ok(warp::reply::with_status("Question added", StatusCode::OK)),
         Err(e) => Err(warp::reject::custom(e)),
