@@ -19,6 +19,10 @@ async fn main() {
         .unwrap_or_else(|_| "handle_errors=warn,server=warn,warp=warn".to_owned());
     // "postgres://username:password@localhost:5432/rustwebdev"
     let store = store::Store::new("postgres://postgres:pw@localhost:5432/rustwebdev").await;
+    sqlx::migrate!("../db/migrations")
+        .run(&store.clone().connection)
+        .await
+        .expect("Cannot run migration");
     let store_filter = warp::any().map(move || store.clone());
     tracing_subscriber::fmt()
         // Use the filter we built above to determine which traces to record.

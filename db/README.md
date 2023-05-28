@@ -43,9 +43,68 @@ Check tables creation:
 \dt
 ```
 
-To delete tables:
+### Delete tables
 
 ```bash
 drop table answers, questions;
+```
+
+## Migrations
+
+### sqlx-cli
+
+To install:
+
+```bash
+cargo install sqlx-cli
+```
+
+Create migration
+
+```bash
+sqlx migrate add -r questions_table
+```
+
+Add in the *_questions_table.up.sql file:
+
+```bash
+CREATE TABLE IF NOT EXISTS questions (
+   id serial PRIMARY KEY,
+   title VARCHAR (255) NOT NULL,
+   content TEXT NOT NULL,
+   tags TEXT [],
+   created_on TIMESTAMP NOT NULL DEFAULT NOW()
+);
+```
+
+Add in the *_questions_table.down.sql file:
+
+```bash
+DROP TABLE IF EXISTS questions;
+```
+
+Repeat the previous steps for the `answers` tables, you can see the results in the `migrations` folder.
+
+Connect to the database and run migration:
+
+```bash
+make connect-psql-db
+# First, delete tables created previously.
+drop table answers, questions;
+# Exit the psql command.
+```
+
+Run the `*.up.sql` files:
+
+```bash
+make run-migrations
+```
+
+The table `_sqlx_migrations` will be created to keep track of the already run migrations. This table must be deleted in some cases to avoid errors when recreating the other tables.
+
+Run the `*.down.sql` files:
+
+```bash
+make revert-migrations
 ```
 
