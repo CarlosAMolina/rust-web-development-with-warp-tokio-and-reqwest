@@ -39,7 +39,7 @@ add-comment:
 		--request POST 'localhost:3030/comments' \
 		--header 'Content-Type: application/x-www-form-urlencoded' \
 		--data-urlencode 'content=The solution is to ...' \
-		--data-urlencode 'questionId=0'
+		--data-urlencode 'question_id=0'
 
 update-question:
 	curl \
