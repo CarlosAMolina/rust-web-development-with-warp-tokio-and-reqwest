@@ -10,13 +10,16 @@ call-return-error:
 		-verbose
 
 get-answers:
-	curl "localhost:3030/answers?start=0&end=200"
+	curl "localhost:3030/answers?offset=0&limit=200"
 
 get-answers-of-question:
 	curl "localhost:3030/questions/0/answers"
 
 get-questions:
-	curl "localhost:3030/questions?start=0&end=200"
+	curl "localhost:3030/questions?offset=0&limit=200"
+
+get-questions-all:
+	curl "localhost:3030/questions"
 
 get-question:
 	curl "localhost:3030/questions/0"

@@ -6,27 +6,26 @@ use warp::http::StatusCode;
 use crate::store::Store;
 use crate::types::pagination::{extract_pagination, Pagination};
 use crate::types::question::{NewQuestion, Question, QuestionId};
-use handle_errors::Error;
 
 pub async fn add_question(
     store: Store,
     new_question: NewQuestion,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    if let Err(e) = store.add_question(new_question).await {
-        return Err(warp::reject::custom(Error::DatabaseQueryError(e)));
+    match store.add_question(new_question).await {
+        Ok(_) => Ok(warp::reply::with_status("Question added", StatusCode::OK)),
+        Err(e) => Err(warp::reject::custom(e)),
     }
-    Ok(warp::reply::with_status("Question added", StatusCode::OK))
 }
 
 // TODO check what happen y ID not in db
 pub async fn delete_question(id: i32, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
-    if let Err(e) = store.delete_question(id).await {
-        return Err(warp::reject::custom(Error::DatabaseQueryError(e)));
+    match store.delete_question(id).await {
+        Ok(_) => Ok(warp::reply::with_status(
+            format!("Question {} deleted", id),
+            StatusCode::OK,
+        )),
+        Err(e) => Err(warp::reject::custom(e)),
     }
-    Ok(warp::reply::with_status(
-        format!("Question {} deleted", id),
-        StatusCode::OK,
-    ))
 }
 
 // The instrument macro opens and closes a span
@@ -34,7 +33,7 @@ pub async fn delete_question(id: i32, store: Store) -> Result<impl warp::Reply, 
 // All tracing events inside this function will be
 // assigned to this span.
 // This genereates more logs with more data.
-//#[instrument]
+#[instrument]
 pub async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
@@ -53,7 +52,7 @@ pub async fn get_questions(
         .await
     {
         Ok(res) => Ok(warp::reply::json(&res)),
-        Err(e) => return Err(warp::reject::custom(Error::DatabaseQueryError(e))),
+        Err(e) => return Err(warp::reject::custom(e)),
     }
 }
 
@@ -62,8 +61,8 @@ pub async fn update_question(
     store: Store,
     question: Question,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let res = match store.update_question(question, id).await {
+    match store.update_question(question, id).await {
         Ok(res) => return Ok(warp::reply::json(&res)),
-        Err(e) => return Err(warp::reject::custom(Error::DatabaseQueryError(e))),
+        Err(e) => return Err(warp::reject::custom(e)),
     };
 }
