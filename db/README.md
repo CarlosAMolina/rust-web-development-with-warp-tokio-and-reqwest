@@ -94,7 +94,7 @@ drop table answers, questions;
 # Exit the psql command.
 ```
 
-Run the `*.up.sql` files:
+To run the `*.up.sql` files, we modified the `main.rs` file to do it automatically but, to do it manually, run:
 
 ```bash
 make run-migrations
