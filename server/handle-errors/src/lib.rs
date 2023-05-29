@@ -6,6 +6,7 @@ use warp::{
 };
 
 use tracing::{event, Level, instrument};
+use reqwest::Error as ReqwestError;
 
 #[derive(Debug)]
 pub enum Error {
@@ -13,6 +14,7 @@ pub enum Error {
     ParseError(std::num::ParseIntError),
     StartGreaterThanEnd,
     DatabaseQueryError,
+    ExternalAPIError(ReqwestError),
 }
 
 impl std::fmt::Display for Error {
@@ -24,6 +26,8 @@ impl std::fmt::Display for Error {
             }
             Error::StartGreaterThanEnd => write!(f, "The start is greater than the end"),
             Error::DatabaseQueryError => write!(f, "Cannot update, invalid data"),
+            Error::ExternalAPIError(err) => write!(f, "Cannot execute: {}", err),
+},
         }
     }
 }
@@ -39,6 +43,12 @@ pub async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
              crate::Error::DatabaseQueryError.to_string(),
              StatusCode::UNPROCESSABLE_ENTITY,
          ))
+    } else if let Some(crate::Error::ExternalAPIError(e)) = r.find() {
+        event!(Level::ERROR, "{}", e);
+        Ok(warp::reply::with_status(
+        "Internal Server Error".to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
+    ))
      } else if let Some(error) = r.find::<CorsForbidden>() {
          event!(
              Level::ERROR,

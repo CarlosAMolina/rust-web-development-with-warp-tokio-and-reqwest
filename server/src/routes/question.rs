@@ -20,9 +20,11 @@ pub async fn add_question(
         .header("apikey", api_key)
         .body("a list with shit words")
         .send()
-        .await?
+        .await
+        .map_err(|e| handle_errors::Error::ExternalAPIError(e))?
         .text()
-        .await?;
+        .await
+        .map_err(|e| handle_errors::Error::ExternalAPIError(e))?;
     println!("{}", res); // TODO rm
     match store.add_question(new_question).await {
         Ok(_) => Ok(warp::reply::with_status("Question added", StatusCode::OK)),
