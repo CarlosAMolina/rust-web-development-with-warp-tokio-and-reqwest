@@ -22,6 +22,10 @@ pub async fn add_question(
         .send()
         .await
         .map_err(|e| handle_errors::Error::ExternalAPIError(e))?;
+    // The raised exceptions do not cover all cases:
+    // https://docs.rs/reqwest/latest/reqwest/struct.RequestBuilder.html#method.send
+    // Add raise exception with nonsucess status code in the response.
+    // Example, if we set the apiKey header wrong.
     match res.error_for_status() {
         Ok(res) => {
             let res = res
