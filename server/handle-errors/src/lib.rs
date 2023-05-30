@@ -27,7 +27,6 @@ impl std::fmt::Display for Error {
             Error::StartGreaterThanEnd => write!(f, "The start is greater than the end"),
             Error::DatabaseQueryError => write!(f, "Cannot update, invalid data"),
             Error::ExternalAPIError(err) => write!(f, "Cannot execute: {}", err),
-},
         }
     }
 }
