@@ -11,20 +11,20 @@ use crate::types::question::{NewQuestion, Question, QuestionId};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 struct BadWord {
-   original: String,
-   word: String,
-   deviations: i64,
-   info: i64,
-   #[serde(rename = "replacedLen")]
-   replaced_len: i64,
+    original: String,
+    word: String,
+    deviations: i64,
+    info: i64,
+    #[serde(rename = "replacedLen")]
+    replaced_len: i64,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 struct BadWordsResponse {
-   content: String,
-   bad_words_total: i64,
-   bad_words_list: Vec<BadWord>,
-   censored_content: String,
+    content: String,
+    bad_words_total: i64,
+    bad_words_list: Vec<BadWord>,
+    censored_content: String,
 }
 
 pub async fn add_question(
@@ -69,12 +69,27 @@ pub async fn add_question(
     // TODO RM     )),
     // TODO RM }
 
-    // TODO USE let res = res.json::  
-    // TODO USE ()     .await     .map_err(|e| handle_errors::Error::ExternalAPIError(e))?;    let content = res.censored_content;    let question = NewQuestion {     title: new_question.title,     content,     tags: new_question.tags,   };    match store.add_question(question).await {     Ok(question) => Ok(warp::reply::json(&question)), ❺     Err(e) => Err(warp::reject::custom(e)),   } } async fn transform_error(   res: reqwest::Response ) -> handle_errors::APILayerError { ❻   handle_errors::APILayerError {     status: res.status().as_u16(),     message: res.json::
-    // TODO USE ().await.unwrap().message,   } }
+    let res = res
+        .json::<BadWordsResponse>()
+        .await
+        .map_err(|e| handle_errors::Error::ExternalAPIError(e))?;
+    let content = res.censored_content;
+    let question = NewQuestion {
+        title: new_question.title,
+        content,
+        tags: new_question.tags,
+    };
+    match store.add_question(question).await {
+        Ok(question) => Ok(warp::reply::json(&question)),
+        Err(e) => Err(warp::reject::custom(e)),
+    }
+}
 
-
-
+async fn transform_error(res: reqwest::Response) -> handle_errors::APILayerError {
+    handle_errors::APILayerError {
+        status: res.status().as_u16(),
+        message: res.json::<APIResponse>().await.unwrap().message,
+    }
 }
 
 // TODO check what happen y ID not in db
