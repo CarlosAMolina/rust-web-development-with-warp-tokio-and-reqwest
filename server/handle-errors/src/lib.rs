@@ -5,8 +5,8 @@ use warp::{
     Rejection, Reply,
 };
 
-use tracing::{event, Level, instrument};
 use reqwest::Error as ReqwestError;
+use tracing::{event, instrument, Level};
 
 #[derive(Debug)]
 pub enum Error {
@@ -16,7 +16,7 @@ pub enum Error {
     DatabaseQueryError,
     ExternalAPIError(ReqwestError),
     ClientError(APILayerError),
-    ServerError(APILayerError)
+    ServerError(APILayerError),
 }
 
 #[derive(Debug, Clone)]
@@ -43,10 +43,10 @@ impl std::fmt::Display for Error {
             Error::ExternalAPIError(err) => write!(f, "External API error: {}", err),
             Error::ClientError(err) => {
                 write!(f, "External Client error: {}", err)
-            },
+            }
             Error::ServerError(err) => {
                 write!(f, "External Server error: {}", err)
-            },
+            }
         }
     }
 }
@@ -58,71 +58,52 @@ impl Reject for APILayerError {}
 pub async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
     println!("{:?}", r); // TODO rm
     if let Some(crate::Error::DatabaseQueryError) = r.find() {
-         event!(Level::ERROR, "Database query error");
-         Ok(warp::reply::with_status(
-             crate::Error::DatabaseQueryError.to_string(),
-             StatusCode::UNPROCESSABLE_ENTITY,
-         ))
+        event!(Level::ERROR, "Database query error");
+        Ok(warp::reply::with_status(
+            crate::Error::DatabaseQueryError.to_string(),
+            StatusCode::UNPROCESSABLE_ENTITY,
+        ))
     } else if let Some(crate::Error::ExternalAPIError(e)) = r.find() {
         event!(Level::ERROR, "{}", e);
         Ok(warp::reply::with_status(
-        "Internal Server Error".to_string(),
-        StatusCode::INTERNAL_SERVER_ERROR,
-    ))
+            "Internal Server Error".to_string(),
+            StatusCode::INTERNAL_SERVER_ERROR,
+        ))
     } else if let Some(crate::Error::ClientError(e)) = r.find() {
-    event!(Level::ERROR, "{}", e);
-    Ok(warp::reply::with_status(
-    "Internal Server Error".to_string(),
-    StatusCode::INTERNAL_SERVER_ERROR,
-    ))
+        event!(Level::ERROR, "{}", e);
+        Ok(warp::reply::with_status(
+            "Internal Server Error".to_string(),
+            StatusCode::INTERNAL_SERVER_ERROR,
+        ))
     } else if let Some(crate::Error::ServerError(e)) = r.find() {
-    event!(Level::ERROR, "{}", e);
-    Ok(warp::reply::with_status(
-    "Internal Server Error".to_string(),
-    StatusCode::INTERNAL_SERVER_ERROR,
-    ))
-     } else if let Some(error) = r.find::<CorsForbidden>() {
-         event!(
-             Level::ERROR,
-             "CORS forbidden error: {}",
-             error
-             );
-             Ok(warp::reply::with_status(
-                 error.to_string(),
-                 StatusCode::FORBIDDEN,
-             )
-         )      
-     } else if let Some(error) = r.find::<BodyDeserializeError>() {
-          event!(
-              Level::ERROR,
-              "Cannot deserizalize request body: {}", error
-            );
-          Ok(
-              warp::reply::with_status(
-                  error.to_string(),
-                  StatusCode::UNPROCESSABLE_ENTITY,
-              )
-          )
-      } else if let Some(error) = r.find::<Error>() {
-           event!(
-               Level::ERROR, "{}", error);
-               Ok(warp::reply::with_status(
-                   error.to_string(),
-                   StatusCode::UNPROCESSABLE_ENTITY,
-               )
-           )      
-       } else {
-           event!(
-               Level::WARN,
-               "Requested route was not found"
-           );
-           Ok(
-               warp::reply::with_status(
-                   "Route not found".to_string(),
-                   StatusCode::NOT_FOUND,
-               )
-           )
-       }
-} 
-      
-
+        event!(Level::ERROR, "{}", e);
+        Ok(warp::reply::with_status(
+            "Internal Server Error".to_string(),
+            StatusCode::INTERNAL_SERVER_ERROR,
+        ))
+    } else if let Some(error) = r.find::<CorsForbidden>() {
+        event!(Level::ERROR, "CORS forbidden error: {}", error);
+        Ok(warp::reply::with_status(
+            error.to_string(),
+            StatusCode::FORBIDDEN,
+        ))
+    } else if let Some(error) = r.find::<BodyDeserializeError>() {
+        event!(Level::ERROR, "Cannot deserizalize request body: {}", error);
+        Ok(warp::reply::with_status(
+            error.to_string(),
+            StatusCode::UNPROCESSABLE_ENTITY,
+        ))
+    } else if let Some(error) = r.find::<Error>() {
+        event!(Level::ERROR, "{}", error);
+        Ok(warp::reply::with_status(
+            error.to_string(),
+            StatusCode::UNPROCESSABLE_ENTITY,
+        ))
+    } else {
+        event!(Level::WARN, "Requested route was not found");
+        Ok(warp::reply::with_status(
+            "Route not found".to_string(),
+            StatusCode::NOT_FOUND,
+        ))
+    }
+}
