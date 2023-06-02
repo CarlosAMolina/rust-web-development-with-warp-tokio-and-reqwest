@@ -30,6 +30,9 @@ What it does:
 
 Example: Actix Web, Rocket, Warp, Axum.
 
+## Configuration
+
+Configure the Bad Words API: <https://github.com/CarlosAMolina/bad-words>.
 
 ## Run
 

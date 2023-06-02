@@ -51,13 +51,19 @@ drop table answers, questions;
 
 ## Migrations
 
-### sqlx-cli
+### Configuration
+
+#### sqlx-cli
 
 To install:
 
 ```bash
 cargo install sqlx-cli
 ```
+
+#### Migrations creation
+
+The database `rustwebdev` must be created previously.
 
 Create migration
 
@@ -85,6 +91,8 @@ DROP TABLE IF EXISTS questions;
 
 Repeat the previous steps for the `answers` tables, you can see the results in the `migrations` folder.
 
+### Run migrations
+
 Connect to the database and run migration:
 
 ```bash
@@ -94,7 +102,7 @@ drop table answers, questions;
 # Exit the psql command.
 ```
 
-To run the `*.up.sql` files, we modified the `main.rs` file to do it automatically but, to do it manually, run:
+To run the `*.up.sql` files in the `migrations` folder, we modified the `main.rs` file in the main server program to do it automatically but, to do it manually, run:
 
 ```bash
 make run-migrations

@@ -10,6 +10,11 @@ use crate::types::pagination::{extract_pagination, Pagination};
 use crate::types::question::{NewQuestion, Question, QuestionId};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct APIResponse {
+    message: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
 struct BadWord {
     original: String,
     word: String,
@@ -44,7 +49,7 @@ pub async fn add_question(
     if !res.status().is_success() {
         if res.status().is_client_error() {
             let err = transform_error(res).await;
-            return Err(handle_errors::Error::ServerError(err));
+            return Err(handle_errors::Error::ServerError(err).into());
         }
     }
 
