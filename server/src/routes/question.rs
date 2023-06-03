@@ -75,11 +75,10 @@ pub async fn update_question(
     store: Store,
     question: Question,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    // tokio::spawn wraps our asynchronous function that returns a future, without awaiting it yet.
-    let title = tokio::spawn(check_profanity(question.title));
-    let content = tokio::spawn(check_profanity(question.content));
-    // Run both in parallel.
-    let (title, content) = (title.await.unwrap(), content.await.unwrap());
+    let title = check_profanity(question.title);
+    let content = check_profanity(question.content);
+    // Instead of the spawn, we don’t wrap the function calls separately, we call them inside the join! macro without any await.
+    let (title, content) = tokio::join!(title, content);
     if title.is_err() {
         return Err(warp::reject::custom(title.unwrap_err()));
     }
