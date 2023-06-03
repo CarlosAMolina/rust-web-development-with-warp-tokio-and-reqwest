@@ -42,7 +42,7 @@ add-question-with-words-to-censor:
 
 
 # POST curl for an application/x-www-form-urlencoded request
-add-comment:
+add-answer:
 	curl \
 		--location \
 		--request POST 'localhost:3030/comments' \
