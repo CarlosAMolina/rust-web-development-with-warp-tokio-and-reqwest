@@ -30,6 +30,13 @@ What it does:
 
 Example: Actix Web, Rocket, Warp, Axum.
 
+### Concurrently vs parallel
+
+- Concurrency: makes progress on more than one task at the same time, can have the effect of starting and pausing tasks while finishing them. With `tokio::join!`, the futures (HTTP calls) are executed concurrently on the same thread, both of them make progress at the same time (for example by context switching).
+- Parallelism: more resources are being created or used to work simultaneously on the given tasks. Example, `tokio::spawn` creates another task on the same thread or creates a new thread, allowing parallel execution.
+
+You have to evaluate what option gives a better performance.
+
 ## Configuration
 
 Configure the Bad Words API: <https://github.com/CarlosAMolina/bad-words>.

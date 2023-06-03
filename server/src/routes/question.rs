@@ -75,20 +75,21 @@ pub async fn update_question(
     store: Store,
     question: Question,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let title = match check_profanity(question.title).await {
-        Ok(res) => res,
-        Err(e) => return Err(warp::reject::custom(e)),
-    };
-
-    let content = match check_profanity(question.content).await {
-        Ok(res) => res,
-        Err(e) => return Err(warp::reject::custom(e)),
-    };
-
+    // tokio::spawn wraps our asynchronous function that returns a future, without awaiting it yet.
+    let title = tokio::spawn(check_profanity(question.title));
+    let content = tokio::spawn(check_profanity(question.content));
+    // Run both in parallel.
+    let (title, content) = (title.await.unwrap(), content.await.unwrap());
+    if title.is_err() {
+        return Err(warp::reject::custom(title.unwrap_err()));
+    }
+    if content.is_err() {
+        return Err(warp::reject::custom(content.unwrap_err()));
+    }
     let question = Question {
         id: question.id,
-        title,
-        content,
+        title: title.unwrap(),
+        content: content.unwrap(),
         tags: question.tags,
     };
 
