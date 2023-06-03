@@ -99,7 +99,7 @@ async fn main() {
         .and_then(routes::question::delete_question);
 
     let add_answer = warp::post()
-        .and(warp::path("comments"))
+        .and(warp::path("answers"))
         .and(warp::path::end())
         .and(store_filter.clone())
         .and(warp::body::form())

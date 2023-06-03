@@ -45,10 +45,10 @@ add-question-with-words-to-censor:
 add-answer:
 	curl \
 		--location \
-		--request POST 'localhost:3030/comments' \
+		--request POST 'localhost:3030/answers' \
 		--header 'Content-Type: application/x-www-form-urlencoded' \
 		--data-urlencode 'content=The solution is to ...' \
-		--data-urlencode 'question_id=0'
+		--data-urlencode 'question_id=1'
 
 update-question:
 	curl \

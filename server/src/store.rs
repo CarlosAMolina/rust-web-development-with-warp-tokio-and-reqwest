@@ -126,24 +126,26 @@ impl Store {
     }
 
     pub async fn add_answer(&self, new_answer: NewAnswer) -> Result<Answer, Error> {
-        tracing::event!(tracing::Level::ERROR, "TODO rm NewAnswer: {:?}", new_answer);
-        //match sqlx::query("INSERT INTO answers (content, corresponding_question) VALUES ($1, $2)")
-        match sqlx::query("INSERT INTO answers (content, corresponding_question) VALUES ('foo', 3)")
-            // TODO .bind(new_answer.content)
-            // TODO .bind(new_answer.question_id.0)
+        match sqlx::query(
+            "INSERT INTO answers (content, question_id)
+            VALUES ($1, $2)
+            RETURNING id, content, question_id"
+            )
+            .bind(new_answer.content)
+            .bind(new_answer.question_id.0)
             .map(|row: PgRow| {
                 Answer {
-                id: AnswerId(1),// TODO AnswerId(row.get("id")),
-                content: "hihi".to_string(), // TODO row.get("content"),
-                question_id: QuestionId(3), // TODO QuestionId(row.get("corresponding_question")),
-            }})
+                id: AnswerId(row.get("id")),
+                content: row.get("content"),
+                question_id: QuestionId(row.get("question_id")),
+            }
+            })
             .fetch_one(&self.connection)
             .await
         {
             Ok(answer) => Ok(answer),
             Err(e) => {
                 tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                tracing::event!(tracing::Level::ERROR, "TODO rm: {:?}", e);
                 Err(Error::DatabaseQueryError)
             }
         }
