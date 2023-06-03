@@ -22,7 +22,7 @@ get-questions-all:
 	curl "localhost:3030/questions"
 
 get-question:
-	curl "localhost:3030/questions/0"
+	curl "localhost:3030/questions/1"
 
 # POST request with a JSON body
 add-question:

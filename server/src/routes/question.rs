@@ -42,6 +42,15 @@ pub async fn delete_question(id: i32, store: Store) -> Result<impl warp::Reply, 
     }
 }
 
+// TODO check what happen y ID not in db
+pub async fn get_question(id: i32, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
+    match store.get_question(id).await
+    {
+        Ok(res) => Ok(warp::reply::json(&res)),
+        Err(e) => return Err(warp::reject::custom(e)),
+    }
+}
+
 // The instrument macro opens and closes a span
 // when the function is called.
 // All tracing events inside this function will be
