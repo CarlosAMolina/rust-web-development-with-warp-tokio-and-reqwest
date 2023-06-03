@@ -32,6 +32,15 @@ add-question:
 		--header 'Content-Type: application/json' \
 		--data-raw '{"id": "1", "title": "New question", "content": "How does this work again?"}'
 
+# POST request with a JSON body
+add-question-with-words-to-censor:
+	curl \
+		--location \
+		--request POST 'localhost:3030/questions' \
+		--header 'Content-Type: application/json' \
+		--data-raw '{"id": "1", "title": "Shit title", "content": "Shit comment"}'
+
+
 # POST curl for an application/x-www-form-urlencoded request
 add-comment:
 	curl \
