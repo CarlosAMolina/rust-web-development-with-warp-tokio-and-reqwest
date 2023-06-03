@@ -31,43 +31,6 @@ pub async fn add_question(
     }
 }
 
-// TODO RM // The raised exceptions do not cover all cases:
-// TODO RM // https://docs.rs/reqwest/latest/reqwest/struct.RequestBuilder.html#method.send
-// TODO RM // Add raise exception with nonsucess status code in the response.
-// TODO RM // Example, if we set the apiKey header wrong.
-// TODO RM match res.error_for_status() {
-// TODO RM     Ok(res) => {
-// TODO RM         let res = res
-// TODO RM             .text()
-// TODO RM             .await
-// TODO RM             .map_err(|e| handle_errors::Error::ExternalAPIError(e))?;
-// TODO RM         println!("{}", res); // TODO rm
-// TODO RM         match store.add_question(new_question).await {
-// TODO RM             Ok(_) => Ok(warp::reply::with_status("Question added", StatusCode::OK)),
-// TODO RM             Err(e) => Err(warp::reject::custom(e)),
-// TODO RM         }
-// TODO RM     }
-// TODO RM     Err(err) => Err(warp::reject::custom(
-// TODO RM         handle_errors::Error::ExternalAPIError(err),
-// TODO RM     )),
-// TODO RM }
-
-// TODO rm     let res = res
-// TODO rm         .json::<BadWordsResponse>()
-// TODO rm         .await
-// TODO rm         .map_err(|e| handle_errors::Error::ExternalAPIError(e))?;
-// TODO rm     let content = res.censored_content;
-// TODO rm     let question = NewQuestion {
-// TODO rm         title: new_question.title,
-// TODO rm         content,
-// TODO rm         tags: new_question.tags,
-// TODO rm     };
-// TODO rm     match store.add_question(question).await {
-// TODO rm         Ok(question) => Ok(warp::reply::json(&question)),
-// TODO rm         Err(e) => Err(warp::reject::custom(e)),
-// TODO rm     }
-// TODO rm }
-
 // TODO check what happen y ID not in db
 pub async fn delete_question(id: i32, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
     match store.delete_question(id).await {
