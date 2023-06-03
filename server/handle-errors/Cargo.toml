@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 reqwest = "0.11"
+reqwest-middleware = "0.1.1"
 tracing = { version = "0.1", features = ["log"] }
 warp = "0.3"

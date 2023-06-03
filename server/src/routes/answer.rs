@@ -10,30 +10,25 @@ use crate::types::{
     question::{Question, QuestionId},
 };
 
-
 pub async fn add_answer(
     store: Store,
     new_answer: NewAnswer,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let content = new_answer.content; // TODO rm
-    // TODO let content = match
-    // TODO     check_profanity(new_answer.content).await {
-    // TODO     Ok(res) => res,
-    // TODO     Err(e) => return Err(warp::reject::custom(e)),
-    // TODO };
+                                      // TODO let content = match
+                                      // TODO     check_profanity(new_answer.content).await {
+                                      // TODO     Ok(res) => res,
+                                      // TODO     Err(e) => return Err(warp::reject::custom(e)),
+                                      // TODO };
     let answer = NewAnswer {
         content,
         question_id: new_answer.question_id,
     };
     match store.add_answer(answer).await {
-        Ok(_) => Ok(warp::reply::with_status(
-            "Answer added", 
-            StatusCode::OK
-        )),
+        Ok(_) => Ok(warp::reply::with_status("Answer added", StatusCode::OK)),
         Err(e) => Err(warp::reject::custom(e)),
     }
 }
-
 
 // TODO pub async fn get_answers(
 // TODO     params: HashMap<String, String>,

@@ -129,19 +129,17 @@ impl Store {
         match sqlx::query(
             "INSERT INTO answers (content, question_id)
             VALUES ($1, $2)
-            RETURNING id, content, question_id"
-            )
-            .bind(new_answer.content)
-            .bind(new_answer.question_id.0)
-            .map(|row: PgRow| {
-                Answer {
-                id: AnswerId(row.get("id")),
-                content: row.get("content"),
-                question_id: QuestionId(row.get("question_id")),
-            }
-            })
-            .fetch_one(&self.connection)
-            .await
+            RETURNING id, content, question_id",
+        )
+        .bind(new_answer.content)
+        .bind(new_answer.question_id.0)
+        .map(|row: PgRow| Answer {
+            id: AnswerId(row.get("id")),
+            content: row.get("content"),
+            question_id: QuestionId(row.get("question_id")),
+        })
+        .fetch_one(&self.connection)
+        .await
         {
             Ok(answer) => Ok(answer),
             Err(e) => {

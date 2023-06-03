@@ -4,20 +4,23 @@ use warp::{
     reject::Reject,
     Rejection, Reply,
 };
-
 use reqwest::Error as ReqwestError;
+use reqwest_middleware::Error as MiddlewareReqwestError;
 use tracing::{event, instrument, Level};
 
 #[derive(Debug)]
 pub enum Error {
-    MissingParameters,
-    ParseError(std::num::ParseIntError),
-    StartGreaterThanEnd,
+    ClientError(APILayerError),
     DatabaseQueryError,
     ExternalAPIError(ReqwestError),
-    ClientError(APILayerError),
+    MiddlewareReqwestAPIError(MiddlewareReqwestError),
+    MissingParameters,
+    ParseError(std::num::ParseIntError),
+    ReqwestAPIError(ReqwestError),
     ServerError(APILayerError),
+    StartGreaterThanEnd,
 }
+
 
 #[derive(Debug, Clone)]
 pub struct APILayerError {
@@ -34,21 +37,17 @@ impl std::fmt::Display for APILayerError {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match &*self {
-            Error::MissingParameters => write!(f, "Missing parameter"),
-            Error::ParseError(ref err) => {
-                write!(f, "Cannot parse parameter: {}", err)
-            }
-            Error::StartGreaterThanEnd => write!(f, "The start is greater than the end"),
+            Error::ClientError(err) => write!(f, "External Client error: {}", err),
             Error::DatabaseQueryError => write!(f, "Cannot update, invalid data"),
             Error::ExternalAPIError(err) => write!(f, "External API error: {}", err),
-            Error::ClientError(err) => {
-                write!(f, "External Client error: {}", err)
-            }
-            Error::ServerError(err) => {
-                write!(f, "External Server error: {}", err)
+            Error::MiddlewareReqwestAPIError(err) => write!(f, "External API error: {}", err),
+            Error::MissingParameters => write!(f, "Missing parameter"),
+            Error::ParseError(ref err) => write!(f, "Cannot parse parameter: {}", err),
+            Error::ReqwestAPIError(err) => write!(f, "External API error: {}", err),
+            Error::ServerError(err) => write!(f, "External Server error: {}", err),
+            Error::StartGreaterThanEnd => write!(f, "The start is greater than the end")
             }
         }
-    }
 }
 
 impl Reject for Error {}
@@ -75,6 +74,14 @@ pub async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
             "Internal Server Error".to_string(),
             StatusCode::INTERNAL_SERVER_ERROR,
         ))
+   } else if let Some(crate::Error::MiddlewareReqwestAPIError(e)) = r.find() {
+    event!(Level::ERROR, "{}", e);
+    Ok(
+        warp::reply::with_status(
+            "Internal Server Error".to_string(),
+            StatusCode::INTERNAL_SERVER_ERROR,
+        )
+    )
     } else if let Some(crate::Error::ServerError(e)) = r.find() {
         event!(Level::ERROR, "{}", e);
         Ok(warp::reply::with_status(
