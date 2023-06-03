@@ -39,12 +39,12 @@ async fn main() {
         .allow_header("content-type")
         .allow_methods(&[Method::PUT, Method::DELETE, Method::GET, Method::POST]);
 
-    // TODO let get_answers = warp::get()
-    // TODO     .and(warp::path("answers"))
-    // TODO     .and(warp::path::end())
-    // TODO     .and(warp::query())
-    // TODO     .and(store_filter.clone())
-    // TODO     .and_then(routes::answer::get_answers);
+    let get_answers = warp::get()
+        .and(warp::path("answers"))
+        .and(warp::path::end())
+        .and(warp::query())
+        .and(store_filter.clone())
+        .and_then(routes::answer::get_answers);
 
     // TODO let get_answers_of_question = warp::get()
     // TODO     .and(warp::path("questions"))
@@ -105,12 +105,11 @@ async fn main() {
         .and(warp::body::form())
         .and_then(routes::answer::add_answer);
 
-    let routes = add_question
-        //TODO let routes = get_answers
+    let routes = get_answers
         // TODO .or(get_answers_of_question)
         .or(get_questions)
         //TODO .or(get_question)
-        //TODO .or(add_question)
+        .or(add_question)
         .or(add_answer)
         .or(update_question)
         .or(delete_question)

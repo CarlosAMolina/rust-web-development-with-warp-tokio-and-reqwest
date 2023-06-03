@@ -28,6 +28,30 @@ impl Store {
         }
     }
 
+    pub async fn get_answers(
+        &self,
+        limit: Option<u32>,
+        offset: u32,
+    ) -> Result<Vec<Answer>, Error> {
+        match sqlx::query("SELECT * from answers LIMIT $1 OFFSET $2")
+            .bind(limit)
+            .bind(offset)
+            .map(|row: PgRow| Answer {
+                id: AnswerId(row.get("id")),
+                content: row.get("content"),
+                question_id: QuestionId(row.get("question_id")),
+            })
+            .fetch_all(&self.connection)
+            .await
+        {
+            Ok(answers) => Ok(answers),
+            Err(e) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", e);
+                Err(Error::DatabaseQueryError)
+            }
+        }
+    }
+
     pub async fn get_questions(
         &self,
         limit: Option<u32>,

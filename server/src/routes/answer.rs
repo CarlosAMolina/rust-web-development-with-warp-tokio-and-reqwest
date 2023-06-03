@@ -4,11 +4,12 @@ use warp::http::StatusCode;
 
 use crate::profanity::check_profanity;
 use crate::store::Store;
-use crate::types::pagination::extract_pagination;
+use crate::types::pagination::{extract_pagination, Pagination};
 use crate::types::{
     answer::{Answer, AnswerId, NewAnswer},
     question::{Question, QuestionId},
 };
+use tracing::{event, instrument, Level};
 
 pub async fn add_answer(
     store: Store,
@@ -30,21 +31,29 @@ pub async fn add_answer(
     }
 }
 
-// TODO pub async fn get_answers(
-// TODO     params: HashMap<String, String>,
-// TODO     store: Store,
-// TODO ) -> Result<impl warp::Reply, warp::Rejection> {
-// TODO     if params.is_empty() {
-// TODO         let res: Vec<Answer> = store.answers.read().await.values().cloned().collect();
-// TODO         Ok(warp::reply::json(&res))
-// TODO     } else {
-// TODO         let res: Vec<Answer> = store.answers.read().await.values().cloned().collect();
-// TODO         let pagination = extract_pagination(params, res.len())?;
-// TODO         let res = &res[pagination.offset..pagination.limit];
-// TODO         Ok(warp::reply::json(&res))
-// TODO     }
-// TODO }
-// TODO
+#[instrument]
+pub async fn get_answers(
+    params: HashMap<String, String>,
+    store: Store,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    println!("{:?}", params); // TODO rm
+                              // TODO use server instead practical_rust_book?
+    event!(target: "practical_rust_book", Level::INFO, "querying questions");
+    let mut pagination = Pagination::default();
+    if !params.is_empty() {
+        event!(Level::INFO, pagination = true);
+        //info!("Pagination set {:?}", &pagination); // TODO set pagintaiton values in log
+        pagination = extract_pagination(params)?;
+    }
+    match store
+        .get_answers(pagination.limit, pagination.offset)
+        .await
+    {
+        Ok(res) => Ok(warp::reply::json(&res)),
+        Err(e) => return Err(warp::reject::custom(e)),
+    }
+}
+
 // TODO pub async fn get_answers_of_question(
 // TODO     id: i32,
 // TODO     store: Store,
