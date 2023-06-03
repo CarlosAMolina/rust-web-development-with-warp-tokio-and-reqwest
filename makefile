@@ -30,7 +30,7 @@ add-question:
 		--location \
 		--request POST 'localhost:3030/questions' \
 		--header 'Content-Type: application/json' \
-		--data-raw '{"id": "1", "title": "New question", "content": "How does this work again?"}'
+		--data-raw '{"title": "New question", "content": "How does this work again?"}'
 
 # POST request with a JSON body
 add-question-with-words-to-censor:
@@ -38,7 +38,7 @@ add-question-with-words-to-censor:
 		--location \
 		--request POST 'localhost:3030/questions' \
 		--header 'Content-Type: application/json' \
-		--data-raw '{"id": "1", "title": "Shit title", "content": "Shit comment"}'
+		--data-raw '{"title": "Shit title", "content": "Shit comment"}'
 
 
 # POST curl for an application/x-www-form-urlencoded request
@@ -53,9 +53,16 @@ add-comment:
 update-question:
 	curl \
 		--location \
-		--request PUT 'localhost:3030/questions/0' \
+		--request PUT 'localhost:3030/questions/1' \
 		--header 'Content-Type: application/json' \
-		--data-raw '{ "id": "0", "title": "NEW TITLE", "content": "OLD CONTENT" }'
+		--data-raw '{ "id": 1, "title": "NEW TITLE", "content": "OLD CONTENT" }'
+
+update-question-with-words-to-censor:
+	curl \
+		--location \
+		--request PUT 'localhost:3030/questions/1' \
+		--header 'Content-Type: application/json' \
+		--data-raw '{ "id": 1, "title": "NEW shit TITLE", "content": "OLD shit CONTENT" }'
 
 delete-question:
 	curl \
