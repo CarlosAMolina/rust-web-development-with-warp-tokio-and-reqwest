@@ -28,11 +28,7 @@ impl Store {
         }
     }
 
-    pub async fn get_answers(
-        &self,
-        limit: Option<u32>,
-        offset: u32,
-    ) -> Result<Vec<Answer>, Error> {
+    pub async fn get_answers(&self, limit: Option<u32>, offset: u32) -> Result<Vec<Answer>, Error> {
         match sqlx::query("SELECT * from answers LIMIT $1 OFFSET $2")
             .bind(limit)
             .bind(offset)
@@ -52,10 +48,26 @@ impl Store {
         }
     }
 
-    pub async fn get_question(
-        &self,
-        question_id: i32,
-    ) -> Result<Question, Error> {
+    pub async fn get_answers_of_question(&self, question_id: i32) -> Result<Vec<Answer>, Error> {
+        match sqlx::query("SELECT * from answers WHERE question_id = $1")
+            .bind(question_id)
+            .map(|row: PgRow| Answer {
+                id: AnswerId(row.get("id")),
+                content: row.get("content"),
+                question_id: QuestionId(row.get("question_id")),
+            })
+            .fetch_all(&self.connection)
+            .await
+        {
+            Ok(answers) => Ok(answers),
+            Err(e) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", e);
+                Err(Error::DatabaseQueryError)
+            }
+        }
+    }
+
+    pub async fn get_question(&self, question_id: i32) -> Result<Question, Error> {
         match sqlx::query("SELECT * from questions WHERE id = $1")
             .bind(question_id)
             .map(|row: PgRow| Question {

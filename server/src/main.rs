@@ -46,13 +46,13 @@ async fn main() {
         .and(store_filter.clone())
         .and_then(routes::answer::get_answers);
 
-    // TODO let get_answers_of_question = warp::get()
-    // TODO     .and(warp::path("questions"))
-    // TODO     .and(warp::path::param::<i32>())
-    // TODO     .and(warp::path("answers"))
-    // TODO     .and(warp::path::end())
-    // TODO     .and(store_filter.clone())
-    // TODO     .and_then(routes::answer::get_answers_of_question);
+    let get_answers_of_question = warp::get()
+        .and(warp::path("questions"))
+        .and(warp::path::param::<i32>())
+        .and(warp::path("answers"))
+        .and(warp::path::end())
+        .and(store_filter.clone())
+        .and_then(routes::answer::get_answers_of_question);
 
     let get_questions = warp::get()
         .and(warp::path("questions"))
@@ -106,7 +106,7 @@ async fn main() {
         .and_then(routes::answer::add_answer);
 
     let routes = get_answers
-        // TODO .or(get_answers_of_question)
+        .or(get_answers_of_question)
         .or(get_questions)
         .or(get_question)
         .or(add_question)
