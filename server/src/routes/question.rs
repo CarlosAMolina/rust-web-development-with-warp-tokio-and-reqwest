@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
-use tracing::{event, instrument, Level};
+//use tracing::{event, instrument, Level};
+use tracing::{event, Level};
 use warp::http::StatusCode;
 
 // use crate::profanity::check_profanity;
 use crate::store::Store;
 use crate::types::pagination::{extract_pagination, Pagination};
-use crate::types::question::{NewQuestion, Question, QuestionId};
+use crate::types::question::{NewQuestion, Question};
 
 pub async fn add_question(
     store: Store,
