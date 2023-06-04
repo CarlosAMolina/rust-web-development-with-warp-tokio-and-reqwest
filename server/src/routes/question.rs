@@ -45,6 +45,7 @@ pub async fn delete_question(id: i32, store: Store) -> Result<impl warp::Reply, 
 
 // TODO check what happen y ID not in db
 pub async fn get_question(id: i32, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
+    event!(Level::INFO, "Init");
     match store.get_question(id).await {
         Ok(res) => Ok(warp::reply::json(&res)),
         Err(e) => return Err(warp::reject::custom(e)),
@@ -61,7 +62,7 @@ pub async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    event!(Level::INFO, "params: {:?}", params);
+    event!(Level::INFO, "Init. params: {:?}", params);
     let mut pagination = Pagination::default();
     if !params.is_empty() {
         pagination = extract_pagination(params)?;

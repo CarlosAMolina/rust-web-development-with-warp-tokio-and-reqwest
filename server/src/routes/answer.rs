@@ -49,6 +49,7 @@ pub async fn get_answers_of_question(
     question_id: i32,
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
+    event!(Level::INFO, "Init");
     match store.get_answers_of_question(question_id).await {
         Ok(res) => Ok(warp::reply::json(&res)),
         Err(e) => return Err(warp::reject::custom(e)),

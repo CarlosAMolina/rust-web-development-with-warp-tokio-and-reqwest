@@ -1,7 +1,7 @@
 #![warn(clippy::all)]
 
 use handle_errors::return_error;
-use tracing_subscriber::fmt::format::FmtSpan;
+// use tracing_subscriber::fmt::format::FmtSpan;
 use warp::{http::Method, Filter};
 
 mod profanity;
@@ -31,7 +31,7 @@ async fn main() {
         // Record an event when each span closes.
         // This can be used to time our
         // routes' durations!
-        .with_span_events(FmtSpan::CLOSE)
+        //.with_span_events(FmtSpan::CLOSE)
         .init();
 
     let cors = warp::cors()
