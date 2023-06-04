@@ -17,7 +17,7 @@ async fn main() {
     // application name (server) set in Cargo.toml.
     // - One for Warp.
     let log_filter = std::env::var("RUST_LOG")
-        .unwrap_or_else(|_| "handle_errors=warn,server=warn,warp=warn".to_owned());
+        .unwrap_or_else(|_| "handle_errors=warn,server=info,warp=warn".to_owned());
     // "postgres://username:password@localhost:5432/rustwebdev"
     let store = store::Store::new("postgres://postgres:pw@localhost:5432/rustwebdev").await;
     sqlx::migrate!("../db/migrations")

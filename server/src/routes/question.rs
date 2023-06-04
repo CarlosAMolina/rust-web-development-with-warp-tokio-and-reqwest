@@ -55,14 +55,12 @@ pub async fn get_question(id: i32, store: Store) -> Result<impl warp::Reply, war
 // All tracing events inside this function will be
 // assigned to this span.
 // This genereates more logs with more data.
-#[instrument]
+//#[instrument]
 pub async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    println!("{:?}", params); // TODO rm
-                              // TODO use server instead practical_rust_book?
-    event!(target: "practical_rust_book", Level::INFO, "querying questions");
+    event!(Level::INFO, "params: {:?}", params);
     let mut pagination = Pagination::default();
     if !params.is_empty() {
         event!(Level::INFO, pagination = true);
