@@ -3,8 +3,8 @@ use warp::http::StatusCode;
 
 // use crate::profanity::check_profanity;
 use crate::store::Store;
-use crate::types::pagination::{extract_pagination, Pagination};
 use crate::types::answer::NewAnswer;
+use crate::types::pagination::{extract_pagination, Pagination};
 use tracing::{event, instrument, Level};
 
 pub async fn add_answer(
