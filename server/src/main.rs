@@ -52,7 +52,15 @@ async fn main() {
         .and(warp::path("answers"))
         .and(warp::path::end())
         .and(store_filter.clone())
-        .and_then(routes::answer::get_answers_of_question);
+        .and_then(routes::answer::get_answers_of_question)
+        .with(warp::trace(|info| {
+            tracing::info_span!(
+                  "get_answers_of_question request",
+                  method = %info.method(),
+                  path = %info.path(),
+                  id = %uuid::Uuid::new_v4(),
+            )
+        }));
 
     let get_questions = warp::get()
         .and(warp::path("questions"))
