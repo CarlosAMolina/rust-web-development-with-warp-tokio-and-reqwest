@@ -97,6 +97,7 @@ pub async fn update_question(
     //    content: content.unwrap(),
     //    tags: question.tags,
     //};
+    event!(Level::INFO, "update question");
     let question = Question {
         id: question.id,
         title: question.title,
