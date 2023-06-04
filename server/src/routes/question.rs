@@ -64,9 +64,8 @@ pub async fn get_questions(
     event!(Level::INFO, "params: {:?}", params);
     let mut pagination = Pagination::default();
     if !params.is_empty() {
-        event!(Level::INFO, pagination = true);
-        //info!("Pagination set {:?}", &pagination); // TODO set pagintaiton values in log
         pagination = extract_pagination(params)?;
+        event!(Level::INFO, pagination = true, "{:?}", pagination);
     }
     match store
         .get_questions(pagination.limit, pagination.offset)
