@@ -7,8 +7,10 @@ use handle_errors::Error;
 #[derive(Default, Debug)]
 pub struct Pagination {
     /// The index of the last item which has to be returned
+    // Default limit = None
     pub limit: Option<u32>,
     /// The index of the first item which has to be returned
+    // Default offset = 0
     pub offset: u32,
 }
 

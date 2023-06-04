@@ -5,7 +5,7 @@ use warp::http::StatusCode;
 use crate::store::Store;
 use crate::types::answer::NewAnswer;
 use crate::types::pagination::{extract_pagination, Pagination};
-use tracing::{event, instrument, Level};
+use tracing::{event, Level};
 
 pub async fn add_answer(
     store: Store,
@@ -27,19 +27,16 @@ pub async fn add_answer(
     }
 }
 
-#[instrument]
+//#[instrument]
 pub async fn get_answers(
     params: HashMap<String, String>,
     store: Store,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    println!("{:?}", params); // TODO rm
-                              // TODO use server instead practical_rust_book?
-    event!(target: "practical_rust_book", Level::INFO, "querying questions");
+    event!(Level::INFO, "params: {:?}", params);
     let mut pagination = Pagination::default();
     if !params.is_empty() {
-        event!(Level::INFO, pagination = true);
-        //info!("Pagination set {:?}", &pagination); // TODO set pagintaiton values in log
         pagination = extract_pagination(params)?;
+        event!(Level::INFO, pagination = true, "{:?}", pagination);
     }
     match store.get_answers(pagination.limit, pagination.offset).await {
         Ok(res) => Ok(warp::reply::json(&res)),
