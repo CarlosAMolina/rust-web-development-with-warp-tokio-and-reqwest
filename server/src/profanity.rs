@@ -1,6 +1,6 @@
 //use std::env;
 //
-//use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+//use reqwest_middleware::ClientBuilder;
 //use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 //use serde::{Deserialize, Serialize};
 //
@@ -37,7 +37,7 @@
 //    let res = client
 //        .post("https://api.apilayer.com/bad_words?censor_character=*")
 //        .header("apikey", api_key)
-//        .body(content.clone()) // TODO try removing clone()
+//        .body(content)
 //        .send()
 //        .await
 //        .map_err(|e| handle_errors::Error::MiddlewareReqwestAPIError(e))?;
