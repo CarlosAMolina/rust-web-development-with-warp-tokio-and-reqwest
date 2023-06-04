@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use tracing::{event, instrument, Level};
-//use tracing::{event, Level};
+//use tracing::{event, instrument, Level};
+use tracing::{event, Level};
 use warp::http::StatusCode;
 
 // use crate::profanity::check_profanity;
@@ -56,7 +56,7 @@ pub async fn get_question(id: i32, store: Store) -> Result<impl warp::Reply, war
 // All tracing events inside this function will be
 // assigned to this span.
 // instrument: genereates more logs with more data.
-#[instrument]
+// #[instrument]
 pub async fn get_questions(
     params: HashMap<String, String>,
     store: Store,
