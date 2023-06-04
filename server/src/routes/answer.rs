@@ -11,6 +11,7 @@ pub async fn add_answer(
     store: Store,
     new_answer: NewAnswer,
 ) -> Result<impl warp::Reply, warp::Rejection> {
+    event!(Level::INFO, "add answer");
     let content = new_answer.content;
     // let content = match
     //     check_profanity(new_answer.content).await {
