@@ -76,7 +76,7 @@ async fn main() {
         .and(store_filter.clone())
         .and_then(routes::question::get_question)
         .with(warp::trace(|info| {
-            tracing::debug_span!(
+            tracing::info_span!(
                   "get_question request",
                   method = %info.method(),
                   path = %info.path(),
