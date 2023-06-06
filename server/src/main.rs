@@ -128,7 +128,6 @@ async fn main() {
         .and(warp::body::json())
         .and_then(routes::authentication::register);
 
-
     let routes = add_answer
         .or(add_question)
         .or(delete_question)
