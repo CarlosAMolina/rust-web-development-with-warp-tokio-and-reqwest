@@ -9,6 +9,11 @@ call-return-error:
 		-H "Origin: https://not-origin.io" \
 		-verbose
 
+add-account:
+	curl --location --request POST 'localhost:3030/registration' \
+	--header 'Content-Type: application/json' \
+	--data-raw '{ "email": "foo@bar.com", "password": "securedPassword" }'
+
 get-answers:
 	curl "localhost:3030/answers?offset=0&limit=200"
 
