@@ -42,9 +42,9 @@ impl Store {
             .await
         {
             Ok(answers) => Ok(answers),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
+            Err(error) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", error);
+                Err(Error::DatabaseQueryError(error))
             }
         }
     }
@@ -61,9 +61,9 @@ impl Store {
             .await
         {
             Ok(answers) => Ok(answers),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
+            Err(error) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", error);
+                Err(Error::DatabaseQueryError(error))
             }
         }
     }
@@ -81,9 +81,9 @@ impl Store {
             .await
         {
             Ok(question) => Ok(question),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
+            Err(error) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", error);
+                Err(Error::DatabaseQueryError(error))
             }
         }
     }
@@ -106,9 +106,9 @@ impl Store {
             .await
         {
             Ok(questions) => Ok(questions),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
+            Err(error) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", error);
+                Err(Error::DatabaseQueryError(error))
             }
         }
     }
@@ -132,9 +132,9 @@ impl Store {
         .await
         {
             Ok(question) => Ok(question),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
+            Err(error) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", error);
+                Err(Error::DatabaseQueryError(error))
             }
         }
     }
@@ -164,9 +164,9 @@ impl Store {
         .await
         {
             Ok(question) => Ok(question),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
+            Err(error) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", error);
+                Err(Error::DatabaseQueryError(error))
             }
         }
     }
@@ -178,14 +178,14 @@ impl Store {
             .await
         {
             Ok(_) => Ok(true),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
+            Err(error) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", error);
+                Err(Error::DatabaseQueryError(error))
             }
         }
     }
 
-    pub async fn add_answer(&self, new_answer: NewAnswer) -> Result<Answer, Error> {
+    pub async fn add_answer(&self, new_answer: NewAnswer) -> Result<bool, Error> {
         match sqlx::query(
             "INSERT INTO answers (content, question_id)
             VALUES ($1, $2)
@@ -201,10 +201,21 @@ impl Store {
         .fetch_one(&self.connection)
         .await
         {
-            Ok(answer) => Ok(answer),
-            Err(e) => {
-                tracing::event!(tracing::Level::ERROR, "{:?}", e);
-                Err(Error::DatabaseQueryError)
+            Ok(_) => Ok(true),
+            Err(error) => {
+                tracing::event!(
+                    tracing::Level::ERROR,
+                    code = error
+                        .as_database_error()
+                        .unwrap()
+                        .code()
+                        .unwrap()
+                        .parse::<i32>()
+                        .unwrap(),
+                    db_message = error.as_database_error().unwrap().message(),
+                    constraint = error.as_database_error().unwrap().constraint().unwrap()
+                );
+                Err(Error::DatabaseQueryError(error))
             }
         }
     }
@@ -233,7 +244,7 @@ impl Store {
                     db_message = error.as_database_error().unwrap().message(),
                     constraint = error.as_database_error().unwrap().constraint().unwrap()
                 );
-                Err(Error::DatabaseQueryError)
+                Err(Error::DatabaseQueryError(error))
             }
         }
     }
