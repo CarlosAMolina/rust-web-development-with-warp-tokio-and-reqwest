@@ -1,4 +1,5 @@
 use argon2::{self, Config};
+use chrono::prelude::Utc;
 use paseto;
 use rand::Rng;
 use tracing::{event, Level};
@@ -28,6 +29,7 @@ pub fn hash_password(password: &[u8]) -> String {
 }
 
 pub async fn login(store: Store, login: Account) -> Result<impl warp::Reply, warp::Rejection> {
+    event!(Level::INFO, "Init");
     match store.get_account(login.email).await {
         Ok(account) => match verify_password(&account.password, login.password.as_bytes()) {
             Ok(verified) => {
@@ -52,9 +54,13 @@ fn verify_password(hash: &str, password: &[u8]) -> Result<bool, argon2::Error> {
 }
 
 fn issue_token(account_id: AccountId) -> String {
+    let current_date_time = Utc::now();
+    let expiration_date_time = current_date_time + chrono::Duration::days(1);
     // Instead of using the JWT format, we use Paseto, which has a stronger algorithm.
     paseto::tokens::PasetoBuilder::new()
         .set_encryption_key(&Vec::from("RANDOM WORDS SUMMER FOOBARABC PC".as_bytes()))
+        .set_expiration(&expiration_date_time)
+        .set_not_before(&Utc::now())
         .set_claim("account_id", serde_json::json!(account_id))
         .build()
         .expect("Failed to construct paseto token w/ builder!")
