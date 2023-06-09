@@ -1,10 +1,11 @@
 use argon2::{self, Config};
+use paseto;
 use rand::Rng;
 use tracing::{event, Level};
 use warp::http::StatusCode;
 
 use crate::store::Store;
-use crate::types::account::Account;
+use crate::types::account::{Account, AccountId};
 
 pub async fn register(store: Store, account: Account) -> Result<impl warp::Reply, warp::Rejection> {
     event!(Level::INFO, "Init register");
@@ -24,4 +25,37 @@ pub fn hash_password(password: &[u8]) -> String {
     let salt = rand::thread_rng().gen::<[u8; 32]>();
     let config = Config::default();
     argon2::hash_encoded(password, &salt, &config).unwrap()
+}
+
+pub async fn login(store: Store, login: Account) -> Result<impl warp::Reply, warp::Rejection> {
+    match store.get_account(login.email).await {
+        Ok(account) => match verify_password(&account.password, login.password.as_bytes()) {
+            Ok(verified) => {
+                if verified {
+                    Ok(warp::reply::json(&issue_token(
+                        account.id.expect("id not found"),
+                    )))
+                } else {
+                    Err(warp::reject::custom(handle_errors::Error::WrongPassword))
+                }
+            }
+            Err(e) => Err(warp::reject::custom(
+                handle_errors::Error::ArgonLibraryError(e),
+            )),
+        },
+        Err(e) => Err(warp::reject::custom(e)),
+    }
+}
+
+fn verify_password(hash: &str, password: &[u8]) -> Result<bool, argon2::Error> {
+    argon2::verify_encoded(hash, password)
+}
+
+fn issue_token(account_id: AccountId) -> String {
+    // Instead of using the JWT format, we use Paseto, which has a stronger algorithm.
+    paseto::tokens::PasetoBuilder::new()
+        .set_encryption_key(&Vec::from("RANDOM WORDS SUMMER FOOBARABC PC".as_bytes()))
+        .set_claim("account_id", serde_json::json!(account_id))
+        .build()
+        .expect("Failed to construct paseto token w/ builder!")
 }

@@ -75,3 +75,15 @@ delete-question:
 		--request DELETE 'localhost:3030/questions/0' \
 		--header 'Content-Type: application/json'
 
+login:
+	curl \
+		--location --request POST 'localhost:3030/login' \
+		--header 'Content-Type: application/json' \
+		--data-raw '{ "email": "foo@bar.com", "password": "securedPassword" }'
+
+login-error:
+	curl \
+		--location --request POST 'localhost:3030/login' \
+		--header 'Content-Type: application/json' \
+		--data-raw '{ "email": "invented@foo.com", "password": "invented_pw" }'
+
