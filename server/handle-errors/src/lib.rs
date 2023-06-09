@@ -68,6 +68,12 @@ pub async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
     if let Some(crate::Error::DatabaseQueryError(e)) = r.find() {
         event!(Level::ERROR, "Database query error");
         match e {
+            sqlx::Error::RowNotFound => {
+                Ok(warp::reply::with_status(
+                    "Wrong E-Mail/Password combination".to_string(),
+                    StatusCode::UNPROCESSABLE_ENTITY,
+                ))
+            },
             sqlx::Error::Database(err) => {
                 if err.code().unwrap().parse::<u32>().unwrap() == DUPLICATE_KEY {
                     Ok(warp::reply::with_status(
