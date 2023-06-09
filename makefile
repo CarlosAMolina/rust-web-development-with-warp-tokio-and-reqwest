@@ -81,7 +81,14 @@ login:
 		--header 'Content-Type: application/json' \
 		--data-raw '{ "email": "foo@bar.com", "password": "securedPassword" }'
 
-login-error:
+login-error-wrong-password:
+	curl \
+		--location --request POST 'localhost:3030/login' \
+		--header 'Content-Type: application/json' \
+		--data-raw '{ "email": "foo@bar.com", "password": "foo" }'
+
+
+login-error-account-not-in-db:
 	curl \
 		--location --request POST 'localhost:3030/login' \
 		--header 'Content-Type: application/json' \
