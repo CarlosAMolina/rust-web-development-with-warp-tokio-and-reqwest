@@ -2,11 +2,12 @@ use argon2::{self, Config};
 use chrono::prelude::Utc;
 use paseto;
 use rand::Rng;
+use std::future;
 use tracing::{event, Level};
-use warp::http::StatusCode;
+use warp::{Filter, http::StatusCode};
 
 use crate::store::Store;
-use crate::types::account::{Account, AccountId};
+use crate::types::account::{Account, AccountId, Session};
 
 pub async fn register(store: Store, account: Account) -> Result<impl warp::Reply, warp::Rejection> {
     event!(Level::INFO, "Init register");
@@ -53,6 +54,17 @@ fn verify_password(hash: &str, password: &[u8]) -> Result<bool, argon2::Error> {
     argon2::verify_encoded(hash, password)
 }
 
+pub fn verify_token(token: String) -> Result<Session, handle_errors::Error> {
+    let token = paseto::tokens::validate_local_token(
+        &token,
+        None,
+        &"RANDOM WORDS SUMMER FOOBARABC PC".as_bytes(),
+        &paseto::tokens::TimeBackend::Chrono,
+    )
+    .map_err(|_| handle_errors::Error::CannotDecryptToken)?;
+    serde_json::from_value::<Session>(token).map_err(|_| handle_errors::Error::CannotDecryptToken)
+}
+
 fn issue_token(account_id: AccountId) -> String {
     let current_date_time = Utc::now();
     let expiration_date_time = current_date_time + chrono::Duration::days(1);
@@ -64,4 +76,17 @@ fn issue_token(account_id: AccountId) -> String {
         .set_claim("account_id", serde_json::json!(account_id))
         .build()
         .expect("Failed to construct paseto token w/ builder!")
+}
+
+// We return a type that implements the Filter trait that expects the generic type Session, or an Error that implements Warp’s Rejection trait. With `+ Clone` the returned Filter can be clone.
+// `future::ready` returns a type Ready with the Result inside it.
+pub fn auth() -> impl Filter<Extract = (Session,), Error = warp::Rejection> + Clone {
+    warp::header::<String>("Authorization").and_then(|token: String| {
+        let token = match verify_token(token) {
+            Ok(t) => t,
+            Err(_) => return future::ready(Err(warp::reject::reject())),
+        };
+
+        future::ready(Ok(token))
+    })
 }
