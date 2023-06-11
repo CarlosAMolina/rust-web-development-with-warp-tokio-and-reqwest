@@ -37,6 +37,12 @@ Example: Actix Web, Rocket, Warp, Axum.
 
 You have to evaluate what option gives a better performance.
 
+## Middleware
+
+A middleware is placed after the HTTP request is accepted by a route, and before it is passed to the route handler.
+
+It's job is to extract or add information to a request, so the route handlers can do their job.
+
 ## Configuration
 
 Configure the Bad Words API: <https://github.com/CarlosAMolina/bad-words>.
