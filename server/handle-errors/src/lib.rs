@@ -9,10 +9,10 @@ use reqwest::Error as ReqwestError;
 use reqwest_middleware::Error as MiddlewareReqwestError;
 use tracing::{event, instrument, Level};
 
-
 #[derive(Debug)]
 pub enum Error {
     ArgonLibraryError(ArgonError),
+    CannotDecryptToken,
     ClientError(APILayerError),
     DatabaseQueryError(sqlx::Error),
     ExternalAPIError(ReqwestError),
@@ -22,6 +22,7 @@ pub enum Error {
     ReqwestAPIError(ReqwestError),
     ServerError(APILayerError),
     StartGreaterThanEnd,
+    Unauthorized,
     WrongPassword,
 }
 
@@ -42,6 +43,7 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match &*self {
             Error::ArgonLibraryError(_) => write!(f, "Cannot verifiy password"),
+            Error::CannotDecryptToken => write!(f, "Cannot decrypt error"),
             Error::ClientError(err) => write!(f, "External Client error: {}", err),
             Error::DatabaseQueryError(_) => write!(f, "Cannot update, invalid data"),
             Error::ExternalAPIError(err) => write!(f, "External API error: {}", err),
@@ -51,6 +53,7 @@ impl std::fmt::Display for Error {
             Error::ReqwestAPIError(err) => write!(f, "External API error: {}", err),
             Error::ServerError(err) => write!(f, "External Server error: {}", err),
             Error::StartGreaterThanEnd => write!(f, "The start is greater than the end"),
+            Error::Unauthorized => write!(f, "No permission to change the underlying resource"),
             Error::WrongPassword => write!(f, "Wrong password")
             }
         }
@@ -142,6 +145,12 @@ pub async fn return_error(r: Rejection) -> Result<impl Reply, Rejection> {
         event!(Level::ERROR, "Entered wrong password");
         Ok(warp::reply::with_status(
         "Wrong E-Mail/Password combination".to_string(),
+        StatusCode::UNAUTHORIZED,
+    ))
+    } else if let Some(crate::Error::Unauthorized) = r.find() {
+        event!(Level::ERROR, "Not matching account id");
+        Ok(warp::reply::with_status(
+        "No permission to change underlying resource".to_string(),
         StatusCode::UNAUTHORIZED,
     ))
     } else if let Some(error) = r.find::<Error>() {

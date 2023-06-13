@@ -143,17 +143,21 @@ impl Store {
         &self,
         question: Question,
         question_id: i32,
+        account_id: AccountId,
     ) -> Result<Question, Error> {
+        println!("Account id: {}", account_id.0);
         match sqlx::query(
             "UPDATE questions
             SET title = $1, content = $2, tags = $3
-            WHERE id = $4
+            WHERE id = $4 AND account_id = $5
             RETURNING id, title, content, tags",
         )
         .bind(question.title)
         .bind(question.content)
         .bind(question.tags)
         .bind(question_id)
+        // AccountId has one field that we access through the .0.
+        .bind(account_id.0)
         .map(|row: PgRow| Question {
             id: QuestionId(row.get("id")),
             title: row.get("title"),
@@ -264,6 +268,26 @@ impl Store {
             Err(error) => {
                 tracing::event!(tracing::Level::ERROR, "{:?}", error);
                 Err(Error::DatabaseQueryError(error))
+            }
+        }
+    }
+
+    pub async fn is_question_owner(
+        &self,
+        question_id: i32,
+        account_id: &AccountId,
+    ) -> Result<bool, Error> {
+        // fetch_optional: returns None or one answer back.
+        match sqlx::query("SELECT * from questions where id = $1 and account_id = $2")
+            .bind(question_id)
+            .bind(account_id.0)
+            .fetch_optional(&self.connection)
+            .await
+        {
+            Ok(question) => Ok(question.is_some()),
+            Err(e) => {
+                tracing::event!(tracing::Level::ERROR, "{:?}", e);
+                Err(Error::DatabaseQueryError(e))
             }
         }
     }

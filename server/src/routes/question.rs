@@ -10,7 +10,6 @@ use crate::types::account::Session;
 use crate::types::pagination::{extract_pagination, Pagination};
 use crate::types::question::{NewQuestion, Question};
 
-
 pub async fn add_question(
     store: Store,
     new_question: NewQuestion,
@@ -101,14 +100,19 @@ pub async fn update_question(
     //    tags: question.tags,
     //};
     event!(Level::INFO, "Init update question");
-    let question = Question {
-        id: question.id,
-        title: question.title,
-        content: question.content,
-        tags: question.tags,
-    };
-    match store.update_question(question, id).await {
-        Ok(res) => Ok(warp::reply::json(&res)),
-        Err(e) => Err(warp::reject::custom(e)),
+    let account_id = session.account_id;
+    if store.is_question_owner(id, &account_id).await? {
+        let question = Question {
+            id: question.id,
+            title: question.title,
+            content: question.content,
+            tags: question.tags,
+        };
+        match store.update_question(question, id, account_id).await {
+            Ok(res) => Ok(warp::reply::json(&res)),
+            Err(e) => Err(warp::reject::custom(e)),
+        }
+    } else {
+        Err(warp::reject::custom(handle_errors::Error::Unauthorized))
     }
 }

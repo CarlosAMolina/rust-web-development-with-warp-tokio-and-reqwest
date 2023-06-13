@@ -4,7 +4,7 @@ use paseto;
 use rand::Rng;
 use std::future;
 use tracing::{event, Level};
-use warp::{Filter, http::StatusCode};
+use warp::{http::StatusCode, Filter};
 
 use crate::store::Store;
 use crate::types::account::{Account, AccountId, Session};
