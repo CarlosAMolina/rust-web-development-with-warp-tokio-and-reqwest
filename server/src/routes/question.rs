@@ -6,8 +6,10 @@ use warp::http::StatusCode;
 
 // use crate::profanity::check_profanity;
 use crate::store::Store;
+use crate::types::account::Session;
 use crate::types::pagination::{extract_pagination, Pagination};
 use crate::types::question::{NewQuestion, Question};
+
 
 pub async fn add_question(
     store: Store,
@@ -78,6 +80,7 @@ pub async fn get_questions(
 
 pub async fn update_question(
     id: i32,
+    session: Session,
     store: Store,
     question: Question,
 ) -> Result<impl warp::Reply, warp::Rejection> {
@@ -97,7 +100,7 @@ pub async fn update_question(
     //    content: content.unwrap(),
     //    tags: question.tags,
     //};
-    event!(Level::INFO, "update question");
+    event!(Level::INFO, "Init update question");
     let question = Question {
         id: question.id,
         title: question.title,
