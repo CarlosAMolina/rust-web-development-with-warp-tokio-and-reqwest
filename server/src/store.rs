@@ -180,9 +180,14 @@ impl Store {
         }
     }
 
-    pub async fn delete_question(&self, question_id: i32) -> Result<bool, Error> {
-        match sqlx::query("DELETE FROM questions WHERE id = $1")
+    pub async fn delete_question(
+        &self,
+        question_id: i32,
+        account_id: AccountId,
+    ) -> Result<bool, Error> {
+        match sqlx::query("DELETE FROM questions WHERE id = $1 AND account_id = $2")
             .bind(question_id)
+            .bind(account_id.0)
             .execute(&self.connection)
             .await
         {

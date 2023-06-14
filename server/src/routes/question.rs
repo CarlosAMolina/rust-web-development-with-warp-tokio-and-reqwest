@@ -37,13 +37,23 @@ pub async fn add_question(
 }
 
 // TODO check what happen y ID not in db
-pub async fn delete_question(id: i32, store: Store) -> Result<impl warp::Reply, warp::Rejection> {
-    match store.delete_question(id).await {
-        Ok(_) => Ok(warp::reply::with_status(
-            format!("Question {} deleted", id),
-            StatusCode::OK,
-        )),
-        Err(e) => Err(warp::reject::custom(e)),
+pub async fn delete_question(
+    id: i32,
+    session: Session,
+    store: Store,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let account_id = session.account_id;
+    if store.is_question_owner(id, &account_id).await? {
+        match store.delete_question(id, account_id).await {
+            Ok(_) => Ok(warp::reply::with_status(
+                format!("Question {} deleted", id),
+                StatusCode::OK,
+            )),
+            Err(e) => Err(warp::reject::custom(e)),
+        }
+    }
+    else {
+        Err(warp::reject::custom(handle_errors::Error::Unauthorized))
     }
 }
 
