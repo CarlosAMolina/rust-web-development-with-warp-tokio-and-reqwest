@@ -11,6 +11,7 @@ use crate::types::pagination::{extract_pagination, Pagination};
 use crate::types::question::{NewQuestion, Question};
 
 pub async fn add_question(
+    session: Session,
     store: Store,
     new_question: NewQuestion,
 ) -> Result<impl warp::Reply, warp::Rejection> {
@@ -22,12 +23,14 @@ pub async fn add_question(
     //    Ok(res) => res,
     //    Err(e) => return Err(warp::reject::custom(e)),
     //};
+    event!(Level::INFO, "Init");
+    let account_id = session.account_id;
     let question = NewQuestion {
         title: new_question.title,
         content: new_question.content,
         tags: new_question.tags,
     };
-    match store.add_question(question).await {
+    match store.add_question(question, account_id).await {
         Ok(_) => Ok(warp::reply::with_status("Question added", StatusCode::OK)),
         Err(e) => Err(warp::reject::custom(e)),
     }
