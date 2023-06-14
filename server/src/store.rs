@@ -199,14 +199,19 @@ impl Store {
         }
     }
 
-    pub async fn add_answer(&self, new_answer: NewAnswer) -> Result<bool, Error> {
+    pub async fn add_answer(
+        &self,
+        new_answer: NewAnswer,
+        account_id: AccountId,
+    ) -> Result<bool, Error> {
         match sqlx::query(
-            "INSERT INTO answers (content, question_id)
-            VALUES ($1, $2)
+            "INSERT INTO answers (content, question_id, account_id)
+            VALUES ($1, $2, $3)
             RETURNING id, content, question_id",
         )
         .bind(new_answer.content)
         .bind(new_answer.question_id.0)
+        .bind(account_id.0)
         .map(|row: PgRow| Answer {
             id: AnswerId(row.get("id")),
             content: row.get("content"),

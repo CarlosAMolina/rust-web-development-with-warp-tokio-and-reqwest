@@ -51,8 +51,7 @@ pub async fn delete_question(
             )),
             Err(e) => Err(warp::reject::custom(e)),
         }
-    }
-    else {
+    } else {
         Err(warp::reject::custom(handle_errors::Error::Unauthorized))
     }
 }
