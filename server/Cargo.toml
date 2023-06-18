@@ -10,6 +10,8 @@ chrono = "0.4.19"
 clap = { version = "3.1.7", features = ["derive"] }
 config = { version = "0.13.1", features = ["toml"] }
 paseto = "2.0"
+# Required to avoid errors with clap.
+proc-macro2 = "1.0.37"
 rand = "0.8"
 reqwest = { version = "0.11", features = ["json"] }
 reqwest-middleware = "0.1.1"

@@ -1,10 +1,8 @@
 #![warn(clippy::all)]
 
 use clap::Parser;
-use config::Config;
 use handle_errors::return_error;
 // use tracing_subscriber::fmt::format::FmtSpan;
-use std::env;
 use warp::{http::Method, Filter};
 
 mod profanity;
@@ -12,36 +10,43 @@ mod routes;
 mod store;
 mod types;
 
-#[derive(Parser, Debug, Default, serde::Deserialize, PartialEq)]
+/// Q&A web service API
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
 struct Args {
     /// URL for the postgres database
+    #[clap(long, default_value = "localhost")]
     database_host: String,
     /// Database name
+    #[clap(long, default_value = "rustwebdev")]
     database_name: String,
     /// Database password
+    #[clap(long, default_value = "pw")]
     database_password: String,
     /// PORT number for the database connection
+    #[clap(long, default_value = "5432")]
     database_port: u16,
     /// Database user
+    #[clap(long, default_value = "postgres")]
     database_user: String,
+    /// Which errors we want to log (info, warn or error)
     /// Log level handle errors
+    #[clap(long, default_value = "warn")]
     log_level_handle_errors: String,
     /// Log level rust-web-dev
+    #[clap(long, default_value = "info")]
     log_level_rust_web_dev: String,
     /// Log level warp
+    #[clap(long, default_value = "error")]
     log_level_warp: String,
     /// Web server port
+    #[clap(long, default_value = "3030")]
     web_server_port: u16,
 }
 
 #[tokio::main]
 async fn main() {
-    // The `.tom` file extension in the file name is not required.
-    let config = Config::builder()
-        .add_source(config::File::with_name("setup"))
-        .build()
-        .unwrap();
-    let config = config.try_deserialize::<Args>().unwrap();
+    let args = Args::parse();
     // Set log level for the application.
     // We pass three:
     // - One for the server implementation: indicated by the
@@ -50,16 +55,16 @@ async fn main() {
     let log_filter = std::env::var("RUST_LOG").unwrap_or_else(|_| {
         format!(
             "handle_errors={},rust_web_dev={},warp={}",
-            config.log_level_handle_errors, config.log_level_rust_web_dev, config.log_level_warp
+            args.log_level_handle_errors, args.log_level_rust_web_dev, args.log_level_warp
         )
     });
     let store = store::Store::new(&format!(
         "postgres://{}:{}@{}:{}/{}",
-        config.database_user,
-        config.database_password,
-        config.database_host,
-        config.database_port,
-        config.database_name
+        args.database_user,
+        args.database_password,
+        args.database_host,
+        args.database_port,
+        args.database_name
     ))
     .await;
     sqlx::migrate!("../db/migrations")
@@ -196,6 +201,6 @@ async fn main() {
         .recover(return_error);
 
     warp::serve(routes)
-        .run(([127, 0, 0, 1], config.web_server_port))
+        .run(([127, 0, 0, 1], args.web_server_port))
         .await;
 }

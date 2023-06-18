@@ -1731,6 +1731,7 @@ dependencies = [
  "config",
  "handle-errors",
  "paseto",
+ "proc-macro2",
  "rand",
  "reqwest",
  "reqwest-middleware",

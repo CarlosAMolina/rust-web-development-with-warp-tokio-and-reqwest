@@ -1,6 +1,19 @@
 doc:
 	cd server && cargo doc && cargo doc --open
 
+run-with-args:
+	cd server && cargo run \
+		-- \
+		--database-host localhost \
+		--database-name rustwebdev \
+		--database-password pw \
+		--database-port 5432 \
+		--database-user postgres \
+		--log-level-handle-errors warn \
+		--log-level-rust-web-dev info \
+		--log-level-warp error \
+		--web-server-port 3030
+
 call-return-error:
 	curl \
 		-X OPTIONS localhost:3030/questions \
