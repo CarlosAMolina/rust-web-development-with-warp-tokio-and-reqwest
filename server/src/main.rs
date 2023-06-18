@@ -1,7 +1,10 @@
 #![warn(clippy::all)]
 
+use clap::Parser;
+use config::Config;
 use handle_errors::return_error;
 // use tracing_subscriber::fmt::format::FmtSpan;
+use std::env;
 use warp::{http::Method, Filter};
 
 mod profanity;
@@ -9,17 +12,56 @@ mod routes;
 mod store;
 mod types;
 
+#[derive(Parser, Debug, Default, serde::Deserialize, PartialEq)]
+struct Args {
+    /// URL for the postgres database
+    database_host: String,
+    /// Database name
+    database_name: String,
+    /// Database password
+    database_password: String,
+    /// PORT number for the database connection
+    database_port: u16,
+    /// Database user
+    database_user: String,
+    /// Log level handle errors
+    log_level_handle_errors: String,
+    /// Log level rust-web-dev
+    log_level_rust_web_dev: String,
+    /// Log level warp
+    log_level_warp: String,
+    /// Web server port
+    web_server_port: u16,
+}
+
 #[tokio::main]
 async fn main() {
+    // The `.tom` file extension in the file name is not required.
+    let config = Config::builder()
+        .add_source(config::File::with_name("setup"))
+        .build()
+        .unwrap();
+    let config = config.try_deserialize::<Args>().unwrap();
     // Set log level for the application.
     // We pass three:
     // - One for the server implementation: indicated by the
-    // application name (server) set in Cargo.toml.
+    // application name (rust-web-dev) set in Cargo.toml.
     // - One for Warp.
-    let log_filter = std::env::var("RUST_LOG")
-        .unwrap_or_else(|_| "handle_errors=warn,server=info,warp=error".to_owned());
-    // "postgres://username:password@localhost:5432/rustwebdev"
-    let store = store::Store::new("postgres://postgres:pw@localhost:5432/rustwebdev").await;
+    let log_filter = std::env::var("RUST_LOG").unwrap_or_else(|_| {
+        format!(
+            "handle_errors={},rust_web_dev={},warp={}",
+            config.log_level_handle_errors, config.log_level_rust_web_dev, config.log_level_warp
+        )
+    });
+    let store = store::Store::new(&format!(
+        "postgres://{}:{}@{}:{}/{}",
+        config.database_user,
+        config.database_password,
+        config.database_host,
+        config.database_port,
+        config.database_name
+    ))
+    .await;
     sqlx::migrate!("../db/migrations")
         .run(&store.clone().connection)
         .await
@@ -153,5 +195,7 @@ async fn main() {
         .with(warp::trace::request())
         .recover(return_error);
 
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    warp::serve(routes)
+        .run(([127, 0, 0, 1], config.web_server_port))
+        .await;
 }

@@ -1,0 +1,9 @@
+database_host = "localhost"
+database_name = "rustwebdev"
+database_password = "pw"
+database_port = 5432
+database_user = "postgres"
+log_level_handle_errors = "warn"
+log_level_rust_web_dev = "info"
+log_level_warp = "error"
+web_server_port = 3030

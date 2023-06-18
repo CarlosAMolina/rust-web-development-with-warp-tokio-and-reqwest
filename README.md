@@ -65,6 +65,8 @@ Configure the Bad Words API: <https://github.com/CarlosAMolina/bad-words>.
 
 ## Run
 
+Initialize the database, read the `db/README.md` file.
+
 Initialize the server:
 
 ```bash
