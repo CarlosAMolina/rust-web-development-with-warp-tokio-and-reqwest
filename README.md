@@ -37,11 +37,27 @@ Example: Actix Web, Rocket, Warp, Axum.
 
 You have to evaluate what option gives a better performance.
 
-## Middleware
+## Authentication and authorization
 
-A middleware is placed after the HTTP request is accepted by a route, and before it is passed to the route handler.
+### Registration endpoint
 
-It's job is to extract or add information to a request, so the route handlers can do their job.
+It allows to send an email and password combination to the server.
+
+### Login endpoint
+
+The login endpoint is the entrance to the application, sends back a token that is the key to authorizing HTTP requests.
+
+### Middleware
+
+A middleware is placed before the HTTP request is passed to the route handler.
+
+It's job is to add information to a request, so the route handlers can do their job. For example, it adds the parameter account ID.
+
+### Rout handlers
+
+They extract information from the request and check for a valid token to know if a client is allowed to modify the resource.
+
+A token is a stateless way of authentication. You can have a database table with active tokens to invalidate tokens in the future.
 
 ## Configuration
 
