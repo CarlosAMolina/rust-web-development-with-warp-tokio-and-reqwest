@@ -23,7 +23,7 @@ pub async fn add_question(
     //    Ok(res) => res,
     //    Err(e) => return Err(warp::reject::custom(e)),
     //};
-    event!(Level::INFO, "Init");
+    event!(Level::INFO, "Init add");
     let account_id = session.account_id;
     let question = NewQuestion {
         title: new_question.title,
@@ -111,7 +111,7 @@ pub async fn update_question(
     //    content: content.unwrap(),
     //    tags: question.tags,
     //};
-    event!(Level::INFO, "Init update question");
+    event!(Level::INFO, "Init update");
     let account_id = session.account_id;
     if store.is_question_owner(id, &account_id).await? {
         let question = Question {

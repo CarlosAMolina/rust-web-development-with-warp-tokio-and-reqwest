@@ -30,7 +30,7 @@ pub fn hash_password(password: &[u8]) -> String {
 }
 
 pub async fn login(store: Store, login: Account) -> Result<impl warp::Reply, warp::Rejection> {
-    event!(Level::INFO, "Init");
+    event!(Level::INFO, "Init login");
     match store.get_account(login.email).await {
         Ok(account) => match verify_password(&account.password, login.password.as_bytes()) {
             Ok(verified) => {

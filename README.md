@@ -49,10 +49,44 @@ Configure the Bad Words API: <https://github.com/CarlosAMolina/bad-words>.
 
 ## Run
 
+Initialize the server:
+
 ```bash
+cd server
 cargo run
-make get-questions
+cd ..
+```
+
+Create an account:
+
+```bash
+make add-account
+```
+
+Login to get a token:
+
+```bash
+make add-account
+```
+
+Copy the retrieved token and place it in the `Authorization` headers of the makefile file.
+
+Now we can create a question:
+
+```bash
 make add-question
+```
+
+To update the question, maybe you have to update the question id in the makefile, after that, run:
+
+```bash
+make update-question
+```
+
+The makefile contains other requests to use. For example:
+
+```bash
+make get-questions
 ```
 
 ## Resources

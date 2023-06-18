@@ -150,7 +150,7 @@ impl Store {
         question_id: i32,
         account_id: AccountId,
     ) -> Result<Question, Error> {
-        println!("Account id: {}", account_id.0);
+        println!("Account id: {}", account_id.0); // TODO rm
         match sqlx::query(
             "UPDATE questions
             SET title = $1, content = $2, tags = $3
