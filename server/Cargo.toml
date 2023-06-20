@@ -9,6 +9,7 @@ edition = "2021"
 chrono = "0.4.19"
 clap = { version = "3.1.7", features = ["derive"] }
 config = { version = "0.13.1", features = ["toml"] }
+dotenv = "0.15.0"
 paseto = "2.0"
 # Required to avoid errors with clap.
 proc-macro2 = "1.0.37"

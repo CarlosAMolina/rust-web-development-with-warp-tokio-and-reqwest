@@ -28,6 +28,8 @@
 //}
 //
 //pub async fn check_profanity(content: String) -> Result<String, handle_errors::Error> {
+//    // We are already checking if the ENV VARIABLE is set inside main.rs,
+//    // so safe to unwrap here
 //    const ENV_VARIABLE: &str = "BAD_WORDS_API_KEY";
 //    let api_key = env::var(ENV_VARIABLE).expect(&format!("env variable {} not set", ENV_VARIABLE));
 //    let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);

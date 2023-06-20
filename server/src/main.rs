@@ -1,7 +1,9 @@
 #![warn(clippy::all)]
 
 use clap::Parser;
+use dotenv;
 use handle_errors::return_error;
+use std::env;
 // use tracing_subscriber::fmt::format::FmtSpan;
 use warp::{http::Method, Filter};
 
@@ -46,6 +48,19 @@ struct Args {
 
 #[tokio::main]
 async fn main() {
+    // Initialize the .env file via the dotenv crate.
+    dotenv::dotenv().ok();
+    if let Err(_) = env::var("BAD_WORDS_API_KEY") {
+        panic!("BadWords API key not set");
+    }
+    if let Err(_) = env::var("PASETO_KEY") {
+        panic!("PASETO key not set");
+    }
+    let port = std::env::var("PORT")
+        .ok()
+        .map(|val| val.parse::<u16>())
+        .unwrap_or(Ok(8080))
+        .map_err(|e| handle_errors::Error::ParseError(e)).expect("Cannot parse port");
     let args = Args::parse();
     // Set log level for the application.
     // We pass three:
@@ -201,6 +216,6 @@ async fn main() {
         .recover(return_error);
 
     warp::serve(routes)
-        .run(([127, 0, 0, 1], args.web_server_port))
+        .run(([127, 0, 0, 1], port))
         .await;
 }

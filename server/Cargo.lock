@@ -1729,6 +1729,7 @@ dependencies = [
  "chrono",
  "clap",
  "config",
+ "dotenv",
  "handle-errors",
  "paseto",
  "proc-macro2",
