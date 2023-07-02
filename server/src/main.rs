@@ -60,7 +60,8 @@ async fn main() {
         .ok()
         .map(|val| val.parse::<u16>())
         .unwrap_or(Ok(8080))
-        .map_err(|e| handle_errors::Error::ParseError(e)).expect("Cannot parse port");
+        .map_err(|e| handle_errors::Error::ParseError(e))
+        .expect("Cannot parse port");
     let args = Args::parse();
     // Set log level for the application.
     // We pass three:
@@ -217,7 +218,5 @@ async fn main() {
 
     tracing::info!("Q&A service build ID {}", env!("RUST_WEB_DEV_VERSION"));
 
-    warp::serve(routes)
-        .run(([127, 0, 0, 1], port))
-        .await;
+    warp::serve(routes).run(([127, 0, 0, 1], port)).await;
 }
