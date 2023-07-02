@@ -28,3 +28,7 @@ uuid = { version = "0.8", features = ["v4"] }
 warp = "0.3"
 # We can omit the version number for local imports
 handle-errors = { path = "handle-errors" }
+
+[build-dependencies]
+platforms = "2.0.0"
+

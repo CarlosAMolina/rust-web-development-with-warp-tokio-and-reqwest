@@ -37,27 +37,39 @@ Example: Actix Web, Rocket, Warp, Axum.
 
 You have to evaluate what option gives a better performance.
 
-## Authentication and authorization
+### Authentication and authorization
 
-### Registration endpoint
+#### Registration endpoint
 
 It allows to send an email and password combination to the server.
 
-### Login endpoint
+#### Login endpoint
 
 The login endpoint is the entrance to the application, sends back a token that is the key to authorizing HTTP requests.
 
-### Middleware
+#### Middleware
 
 A middleware is placed before the HTTP request is passed to the route handler.
 
 It's job is to add information to a request, so the route handlers can do their job. For example, it adds the parameter account ID.
 
-### Rout handlers
+#### Rout handlers
 
 They extract information from the request and check for a valid token to know if a client is allowed to modify the resource.
 
 A token is a stateless way of authentication. You can have a database table with active tokens to invalidate tokens in the future.
+
+### File build.rs
+
+Cargo will run the code in the build.rs file before it compiles the application code.
+
+Usage examples:
+
+- Set environment variables to use in the CI/CD pipeline. For example, if we include in this environment variable the hash of the current Git commit and log it each time the application is started, this will help to identify the commit when a bug appears.
+
+Resources:
+
+- <https://doc.rust-lang.org/cargo/reference/build-scripts.html#rustc-env>
 
 ## Configuration
 
