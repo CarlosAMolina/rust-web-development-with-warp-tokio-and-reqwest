@@ -1,6 +1,9 @@
 doc:
 	cd server && cargo doc && cargo doc --open
 
+run-docker:
+	cd server && docker-compose up
+
 run-with-args:
 	cd server && cargo run \
 		-- \
