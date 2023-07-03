@@ -10,24 +10,23 @@ WORKDIR /app
 
 COPY ./ .
 
-// For a musl build on M1 Macs, these ENV variables have to be set
+# For a musl build on M1 Macs, these ENV variables have to be set
 ENV RUSTFLAGS='-C linker=x86_64-linux-gnu-gcc'
 ENV CC='gcc'
 ENV CC_x86_64_unknown_linux_musl=x86_64-linux-gnu-gcc
 ENV CC_x86_64-unknown-linux-musl=x86_64-linux-gnu-gcc
 
-// Build command that targets our cross-compilation musl target with the release profile
+# Build command that targets our cross-compilation musl target with the release profile
 RUN cargo build --target x86_64-unknown-linux-musl --release
 
-// We create the final Docker image “from scratch”
+# We create the final Docker image “from scratch”
 FROM scratch
 
 WORKDIR /app
 
-// We copy our binary and the .env file over to 
-// the final image to keep it small
+# We copy our binary and the .env file over to the final image to keep it small
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/rust-web-dev ./
 COPY --from=builder /app/.env ./
 
-// Executing the binary
+# Executing the binary
 CMD ["/app/rust-web-dev"]
