@@ -4,6 +4,7 @@ CONTAINER_VOLUME=db_postgres_rust_web
 DB_NAME=rustwebdev
 IMAGE_NAME=postgres
 IMAGE_VERSION=15.2
+MIGRATIONS_RELATIVE_PATHNAME=../server/
 POSTGRES_USER=postgres
 POSTGRES_PW=pw
 
@@ -38,10 +39,10 @@ stop:
 	docker stop $(CONTAINER_NAME)
 
 run-migrations:
-	sqlx migrate run --database-url postgresql://$(POSTGRES_USER):$(POSTGRES_PW)@localhost:5432/$(DB_NAME)
+	cd $(MIGRATIONS_RELATIVE_PATHNAME) && sqlx migrate run --database-url postgresql://$(POSTGRES_USER):$(POSTGRES_PW)@localhost:5432/$(DB_NAME)
 
 revert-migrations:
 	# Each revert works on the latests migration.
-	sqlx migrate revert --database-url postgresql://$(POSTGRES_USER):$(POSTGRES_PW)@localhost:5432/$(DB_NAME)
-	sqlx migrate revert --database-url postgresql://$(POSTGRES_USER):$(POSTGRES_PW)@localhost:5432/$(DB_NAME)
+	cd $(MIGRATIONS_RELATIVE_PATHNAME) && sqlx migrate revert --database-url postgresql://$(POSTGRES_USER):$(POSTGRES_PW)@localhost:5432/$(DB_NAME)
+	cd $(MIGRATIONS_RELATIVE_PATHNAME) && sqlx migrate revert --database-url postgresql://$(POSTGRES_USER):$(POSTGRES_PW)@localhost:5432/$(DB_NAME)
 

@@ -83,7 +83,8 @@ async fn main() {
         args.database_name
     ))
     .await;
-    sqlx::migrate!("../db/migrations")
+    // https://docs.rs/sqlx/latest/sqlx/macro.migrate.html
+    sqlx::migrate!()
         .run(&store.clone().connection)
         .await
         .expect("Cannot run migration");
