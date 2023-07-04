@@ -16,6 +16,9 @@ ENV CC='gcc'
 ENV CC_x86_64_unknown_linux_musl=x86_64-linux-gnu-gcc
 ENV CC_x86_64-unknown-linux-musl=x86_64-linux-gnu-gcc
 
+# https://github.com/rust-cross/rust-musl-cross/issues/33
+ENV PKG_CONFIG_SYSROOT_DIR=/
+
 # Build command that targets our cross-compilation musl target with the release profile
 RUN cargo build --target x86_64-unknown-linux-musl --release
 
