@@ -41,7 +41,7 @@ struct Args {
     /// Log level warp
     #[clap(long, default_value = "error")]
     log_level_warp: String,
-    /// Web server port
+    /// Which PORT the web server is listening to
     #[clap(long, default_value = "3030")]
     web_server_port: u16,
 }
@@ -63,6 +63,14 @@ async fn main() {
         .map_err(|e| handle_errors::Error::ParseError(e))
         .expect("Cannot parse port");
     let args = Args::parse();
+
+    let database_user = env::var("POSTGRES_USER").unwrap_or(args.database_user.to_owned());
+    // Not put credentials directly in the codebase.
+    let database_password = env::var("POSTGRES_PASSWORD").unwrap();
+    let database_host = env::var("POSTGRES_HOST").unwrap_or(args.database_host.to_owned());
+    let database_port = env::var("POSTGRES_PORT").unwrap_or(args.database_port.to_string());
+    let database_name = env::var("POSTGRES_DB").unwrap_or(args.database_name.to_owned());
+
     // Set log level for the application.
     // We pass three:
     // - One for the server implementation: indicated by the
@@ -76,11 +84,7 @@ async fn main() {
     });
     let store = store::Store::new(&format!(
         "postgres://{}:{}@{}:{}/{}",
-        args.database_user,
-        args.database_password,
-        args.database_host,
-        args.database_port,
-        args.database_name
+        database_user, database_password, database_host, database_port, database_name
     ))
     .await;
     // https://docs.rs/sqlx/latest/sqlx/macro.migrate.html
@@ -218,6 +222,6 @@ async fn main() {
         .recover(return_error);
 
     tracing::info!("Q&A service build ID {}", env!("RUST_WEB_DEV_VERSION"));
-
-    warp::serve(routes).run(([127, 0, 0, 1], port)).await;
+    // We use the address 0.0.0.0 (means all IP4 addresses on the local machine) because when operating within a container, we need access from the outside.
+    warp::serve(routes).run(([0, 0, 0, 0], port)).await;
 }
