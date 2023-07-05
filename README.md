@@ -71,6 +71,10 @@ Resources:
 
 - <https://doc.rust-lang.org/cargo/reference/build-scripts.html#rustc-env>
 
+### musl
+
+The library musl allows us to package the needed system libraries in our binary and generate a statically linked and therefore portable binary.
+
 ## Configuration
 
 Configure the Bad Words API: <https://github.com/CarlosAMolina/bad-words>.
