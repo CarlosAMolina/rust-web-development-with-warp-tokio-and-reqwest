@@ -59,7 +59,7 @@ async fn main() {
     let port = std::env::var("PORT")
         .ok()
         .map(|val| val.parse::<u16>())
-        .unwrap_or(Ok(8080))
+        .unwrap_or(Ok(3030))
         .map_err(|e| handle_errors::Error::ParseError(e))
         .expect("Cannot parse port");
     let args = Args::parse();
