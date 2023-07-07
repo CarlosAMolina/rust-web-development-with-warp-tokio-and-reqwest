@@ -123,6 +123,10 @@ The makefile contains other requests to use. For example:
 make get-questions
 ```
 
+### Docker Compose
+
+If you run the app with Docker Compose, edit the `server/.env` file to set the correct database hostname.
+
 ## Resources
 
 Book code:
