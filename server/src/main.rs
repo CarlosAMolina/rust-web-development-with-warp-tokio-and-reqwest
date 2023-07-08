@@ -12,10 +12,8 @@ mod store;
 mod types;
 
 #[tokio::main]
-// async fn main() -> Result<(), handle_errors::Error> {
-async fn main() {
+async fn main() -> Result<(), handle_errors::Error> {
     let config = config::Config::new().expect("Config can't be set");
-
     // Set log level for the application.
     // We pass three:
     // - One for the server implementation: indicated by the
@@ -33,13 +31,13 @@ async fn main() {
         config.database_port,
         config.database_name
     ))
-    .await;
-    // TODO .map_err(|e| handle_errors::Error::DatabaseQueryError(e))?;
+    .await
+    .map_err(|e| handle_errors::Error::DatabaseQueryError(e))?;
     // https://docs.rs/sqlx/latest/sqlx/macro.migrate.html
     sqlx::migrate!()
         .run(&store.clone().connection)
         .await
-        .expect("Cannot run migration");
+        .map_err(|e| handle_errors::Error::MigrationError(e))?;
     let store_filter = warp::any().map(move || store.clone());
     tracing_subscriber::fmt()
         // Use the filter we built above to determine which traces to record.
@@ -174,5 +172,5 @@ async fn main() {
     warp::serve(routes)
         .run(([0, 0, 0, 0], config.web_server_port))
         .await;
-    // TODO Ok(())
+    Ok(())
 }

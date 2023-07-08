@@ -33,7 +33,7 @@ connect-psql:
 	docker exec -it $(CONTAINER_NAME) psql -U $(POSTGRES_USER)
 
 connect-psql-db:
-	docker exec -it $(CONTAINER_NAME) psql -U $(POSTGRES_USER) rustwebdev
+	docker exec -it $(CONTAINER_NAME) psql -U $(POSTGRES_USER) $(DB_NAME)
 
 stop:
 	docker stop $(CONTAINER_NAME)

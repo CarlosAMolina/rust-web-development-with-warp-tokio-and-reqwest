@@ -1,6 +1,7 @@
 ## Steps
 
 ### Initial steps
+
 First run the makefile commands to work with PostgreSQL.
 
 ### Database creation
