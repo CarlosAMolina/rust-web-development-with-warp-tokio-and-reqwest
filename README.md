@@ -125,7 +125,9 @@ make get-questions
 
 ### Docker Compose
 
-If you run the app with Docker Compose, edit the `server/.env` file to set the correct database hostname.
+When the app is executed with Docker Compose, the database name in the network is `database` instead of `localhost` and the database URL to use changes. The code manages this situation, you don't have to modify anything.
+
+Reference: <https://docs.docker.com/compose/networking/>.
 
 ## Resources
 

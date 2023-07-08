@@ -32,4 +32,4 @@ COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/rust-web-dev .
 COPY --from=builder /app/.env ./
 
 # Executing the binary
-CMD ["/app/rust-web-dev"]
+CMD ["/app/rust-web-dev", "--database-host", "database"]
