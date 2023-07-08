@@ -1,92 +1,36 @@
 #![warn(clippy::all)]
 
-use clap::Parser;
-use dotenv;
 use handle_errors::return_error;
 use std::env;
 // use tracing_subscriber::fmt::format::FmtSpan;
 use warp::{http::Method, Filter};
 
+mod config;
 mod profanity;
 mod routes;
 mod store;
 mod types;
 
-/// Q&A web service API
-#[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
-struct Args {
-    /// URL for the postgres database
-    #[clap(long, default_value = "localhost")]
-    database_host: String,
-    /// Database name
-    #[clap(long, default_value = "rustwebdev")]
-    database_name: String,
-    /// Database password
-    #[clap(long, default_value = "pw")]
-    database_password: String,
-    /// PORT number for the database connection
-    #[clap(long, default_value = "5432")]
-    database_port: u16,
-    /// Database user
-    #[clap(long, default_value = "postgres")]
-    database_user: String,
-    /// Which errors we want to log (info, warn or error)
-    /// Log level handle errors
-    #[clap(long, default_value = "warn")]
-    log_level_handle_errors: String,
-    /// Log level rust-web-dev
-    #[clap(long, default_value = "info")]
-    log_level_rust_web_dev: String,
-    /// Log level warp
-    #[clap(long, default_value = "error")]
-    log_level_warp: String,
-    /// Which PORT the web server is listening to
-    #[clap(long, default_value = "3030")]
-    web_server_port: u16,
-}
-
 #[tokio::main]
+// async fn main() -> Result<(), handle_errors::Error> {
 async fn main() {
-    // Initialize the .env file via the dotenv crate.
-    dotenv::dotenv().ok();
-    if let Err(_) = env::var("BAD_WORDS_API_KEY") {
-        panic!("BadWords API key not set");
-    }
-    if let Err(_) = env::var("PASETO_KEY") {
-        panic!("PASETO key not set");
-    }
-    let port = std::env::var("PORT")
-        .ok()
-        .map(|val| val.parse::<u16>())
-        .unwrap_or(Ok(3030))
-        .map_err(|e| handle_errors::Error::ParseError(e))
-        .expect("Cannot parse port");
-    let args = Args::parse();
-
-    let database_user = env::var("POSTGRES_USER").unwrap_or(args.database_user.to_owned());
-    // Not put credentials directly in the codebase.
-    let database_password = env::var("POSTGRES_PASSWORD").unwrap();
-    let database_host = env::var("POSTGRES_HOST").unwrap_or(args.database_host.to_owned());
-    let database_port = env::var("POSTGRES_PORT").unwrap_or(args.database_port.to_string());
-    let database_name = env::var("POSTGRES_DB").unwrap_or(args.database_name.to_owned());
+    let config = config::Config::new().expect("Config can't be set");
 
     // Set log level for the application.
     // We pass three:
     // - One for the server implementation: indicated by the
     // application name (rust-web-dev) set in Cargo.toml.
     // - One for Warp.
-    let log_filter = std::env::var("RUST_LOG").unwrap_or_else(|_| {
-        format!(
-            "handle_errors={},rust_web_dev={},warp={}",
-            args.log_level_handle_errors, args.log_level_rust_web_dev, args.log_level_warp
-        )
-    });
+    let log_filter = format!(
+    "handle_errors={},rust_web_dev={},warp={}",
+    config.log_level_handle_errors, config.log_level_rust_web_dev, config.log_level_warp
+    );
     let store = store::Store::new(&format!(
         "postgres://{}:{}@{}:{}/{}",
-        database_user, database_password, database_host, database_port, database_name
+        config.database_user, config.database_password, config.database_host, config.database_port, config.database_name
     ))
     .await;
+    // TODO .map_err(|e| handle_errors::Error::DatabaseQueryError(e))?;
     // https://docs.rs/sqlx/latest/sqlx/macro.migrate.html
     sqlx::migrate!()
         .run(&store.clone().connection)
@@ -223,5 +167,6 @@ async fn main() {
 
     tracing::info!("Q&A service build ID {}", env!("RUST_WEB_DEV_VERSION"));
     // We use the address 0.0.0.0 (means all IP4 addresses on the local machine) because when operating within a container, we need access from the outside.
-    warp::serve(routes).run(([0, 0, 0, 0], port)).await;
+    warp::serve(routes).run(([0, 0, 0, 0], config.web_server_port)).await;
+    // TODO Ok(())
 }
