@@ -22,12 +22,16 @@ async fn main() {
     // application name (rust-web-dev) set in Cargo.toml.
     // - One for Warp.
     let log_filter = format!(
-    "handle_errors={},rust_web_dev={},warp={}",
-    config.log_level_handle_errors, config.log_level_rust_web_dev, config.log_level_warp
+        "handle_errors={},rust_web_dev={},warp={}",
+        config.log_level_handle_errors, config.log_level_rust_web_dev, config.log_level_warp
     );
     let store = store::Store::new(&format!(
         "postgres://{}:{}@{}:{}/{}",
-        config.database_user, config.database_password, config.database_host, config.database_port, config.database_name
+        config.database_user,
+        config.database_password,
+        config.database_host,
+        config.database_port,
+        config.database_name
     ))
     .await;
     // TODO .map_err(|e| handle_errors::Error::DatabaseQueryError(e))?;
@@ -167,6 +171,8 @@ async fn main() {
 
     tracing::info!("Q&A service build ID {}", env!("RUST_WEB_DEV_VERSION"));
     // We use the address 0.0.0.0 (means all IP4 addresses on the local machine) because when operating within a container, we need access from the outside.
-    warp::serve(routes).run(([0, 0, 0, 0], config.web_server_port)).await;
+    warp::serve(routes)
+        .run(([0, 0, 0, 0], config.web_server_port))
+        .await;
     // TODO Ok(())
 }
