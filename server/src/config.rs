@@ -90,6 +90,8 @@ mod config_tests {
         env::set_var("POSTGRES_DB", "rustwebdev");
     }
 
+    // As Rust runs test in parallel, we run two tests in the same function
+    // in order to not affect each test when env variables are modified.
     #[test]
     fn unset_and_set_api_key() {
         // The env variables are not set.

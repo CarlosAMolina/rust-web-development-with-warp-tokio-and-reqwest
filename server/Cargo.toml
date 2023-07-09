@@ -26,8 +26,10 @@ tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "0.8", features = ["v4"] }
 warp = "0.3"
-# We can omit the version number for local imports
+# Local imports.
+# We can omit the version number for local imports.
 handle-errors = { path = "handle-errors" }
+mock-server = { path = "mock-server", version = " 0.1.0" }
 
 [build-dependencies]
 platforms = "2.0.0"
