@@ -1,9 +1,12 @@
 #![warn(clippy::all)]
 
-use handle_errors::return_error;
 use std::env;
+
+use dotenv;
 // use tracing_subscriber::fmt::format::FmtSpan;
 use warp::{http::Method, Filter};
+
+use handle_errors::return_error;
 
 mod config;
 mod profanity;
@@ -13,6 +16,8 @@ mod types;
 
 #[tokio::main]
 async fn main() -> Result<(), handle_errors::Error> {
+    // Initialize the .env file via the dotenv crate.
+    dotenv::dotenv().ok();
     let config = config::Config::new().expect("Config can't be set");
     // Set log level for the application.
     // We pass three:

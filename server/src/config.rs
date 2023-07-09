@@ -1,11 +1,10 @@
 #![warn(clippy::all)]
 
 use clap::Parser;
-use dotenv;
 use std::env;
 
 /// Q&A web service API
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, PartialEq)]
 #[clap(author, version, about, long_about = None)]
 pub struct Config {
     /// URL for the postgres database
@@ -40,8 +39,6 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Result<Config, handle_errors::Error> {
-        // Initialize the .env file via the dotenv crate.
-        dotenv::dotenv().ok();
         let config = Config::parse();
         if let Err(_) = env::var("BAD_WORDS_API_KEY") {
             panic!("BadWords API key not set");
@@ -76,5 +73,49 @@ impl Config {
             log_level_rust_web_dev: config.log_level_rust_web_dev,
             log_level_warp: config.log_level_warp,
         })
+    }
+}
+
+#[cfg(test)]
+mod config_tests {
+    use super::*;
+
+    fn set_env() {
+        env::set_var("BAD_WORDS_API_KEY", "yes");
+        env::set_var("PASETO_KEY", "yes");
+        env::set_var("POSTGRES_USER", "user");
+        env::set_var("POSTGRES_PASSWORD", "pass");
+        env::set_var("POSTGRES_HOST", "localhost");
+        env::set_var("POSTGRES_PORT", "5432");
+        env::set_var("POSTGRES_DB", "rustwebdev");
+    }
+
+    #[test]
+    fn unset_and_set_api_key() {
+        // The env variables are not set.
+        // catch_unwind: captures panics without bringing down the program.
+        let result = std::panic::catch_unwind(|| Config::new());
+        assert!(result.is_err());
+
+        // Now we set the env variables.
+        set_env();
+
+        let expected = Config {
+            database_host: "localhost".to_string(),
+            database_name: "rustwebdev".to_string(),
+            database_password: "pass".to_string(),
+            database_port: 5432,
+            database_user: "user".to_string(),
+            log_level_handle_errors: "warn".to_string(),
+            log_level_rust_web_dev: "info".to_string(),
+            log_level_warp: "error".to_string(),
+            web_server_port: 3030,
+        };
+
+        let config = Config::new().unwrap();
+
+        assert_eq!(config, expected);
+        // Unset all the environment variables
+        // env::remove_var("");
     }
 }
