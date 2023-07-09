@@ -1,2 +1,2 @@
-Continue: 11.1.3
+Continue: Figure 11.2
 
