@@ -27,6 +27,7 @@ struct BadWordsResponse {
     censored_content: String,
 }
 
+#[allow(dead_code)]
 pub async fn check_profanity(content: String) -> Result<String, handle_errors::Error> {
     // We are already checking if the ENV VARIABLE is set inside main.rs,
     // so safe to unwrap here
