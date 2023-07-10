@@ -74,7 +74,6 @@ fn issue_token(account_id: AccountId) -> String {
     paseto::tokens::PasetoBuilder::new()
         .set_encryption_key(&Vec::from(key.as_bytes()))
         .set_expiration(&expiration_date_time)
-        .set_not_before(&Utc::now())
         .set_claim("account_id", serde_json::json!(account_id))
         .build()
         .expect("Failed to construct paseto token w/ builder!")
@@ -95,4 +94,30 @@ pub fn auth() -> impl Filter<Extract = (Session,), Error = warp::Rejection> + Cl
 
         future::ready(Ok(token))
     })
+}
+
+#[cfg(test)]
+mod authentication_tests {
+    use super::{auth, env, issue_token, AccountId};
+
+    #[tokio::test]
+    async fn post_questions_auth() {
+        // Set the PASETO_KEY env variable; otherwise, the issue_token function,
+        // which auth calls in the background, would fail.
+        // It's important to set the same value in all tests to not affect
+        // other tests.
+        env::set_var("PASETO_KEY", "RANDOM WORDS WINTER MACINTOSH PC");
+        // Issues a new token that we can pass to your test request in the
+        // Authorization header.
+        let token = issue_token(AccountId(3));
+        let filter = auth();
+        // Calls create-a-test request with a header and passes it to the filter,
+        // which is our auth function.
+        let res = warp::test::request()
+            .header("Authorization", token)
+            .filter(&filter);
+        // Awaits the response and gets a session back, where we compare the account_id
+        // from the session with the one we issued the token with.
+        assert_eq!(res.await.unwrap().account_id, AccountId(3));
+    }
 }

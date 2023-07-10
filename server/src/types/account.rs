@@ -1,12 +1,10 @@
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize}; // TODO not import all
 
-// nbf: not used before this timestamp.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Session {
     pub exp: DateTime<Utc>,
     pub account_id: AccountId,
-    pub nbf: DateTime<Utc>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
