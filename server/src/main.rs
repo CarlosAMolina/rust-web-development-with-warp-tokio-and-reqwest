@@ -15,7 +15,6 @@ mod store;
 mod types;
 
 async fn build_routes(store: store::Store) -> impl Filter<Extract = impl Reply> + Clone {
-
     let store_filter = warp::any().map(move || store.clone());
 
     let cors = warp::cors()
@@ -136,7 +135,6 @@ async fn build_routes(store: store::Store) -> impl Filter<Extract = impl Reply> 
         .with(cors)
         .with(warp::trace::request())
         .recover(return_error)
-
 }
 
 pub async fn setup_store(config: &config::Config) -> Result<store::Store, handle_errors::Error> {
@@ -175,6 +173,14 @@ pub async fn setup_store(config: &config::Config) -> Result<store::Store, handle
     Ok(store)
 }
 
+pub async fn run(config: config::Config, store: store::Store) {
+    let routes = build_routes(store).await;
+    // We use the address 0.0.0.0 (means all IP4 addresses on the local machine) because when operating within a container, we need access from the outside.
+    warp::serve(routes)
+        .run(([0, 0, 0, 0], config.web_server_port))
+        .await;
+}
+
 #[tokio::main]
 async fn main() -> Result<(), handle_errors::Error> {
     // Initialize the .env file via the dotenv crate.
@@ -182,12 +188,6 @@ async fn main() -> Result<(), handle_errors::Error> {
     let config = config::Config::new().expect("Config can't be set");
     let store = setup_store(&config).await?;
     tracing::info!("Q&A service build ID {}", env!("RUST_WEB_DEV_VERSION"));
-
-    let routes = build_routes(store).await;
-
-    // We use the address 0.0.0.0 (means all IP4 addresses on the local machine) because when operating within a container, we need access from the outside.
-    warp::serve(routes)
-        .run(([0, 0, 0, 0], config.web_server_port))
-        .await;
+    run(config, store).await;
     Ok(())
 }
