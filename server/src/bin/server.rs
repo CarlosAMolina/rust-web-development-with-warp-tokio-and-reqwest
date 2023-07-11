@@ -1,5 +1,7 @@
-use rust_web_dev::config;
+use rust_web_dev::config; // rust_web_dev is the project name.
 use rust_web_dev::{run, setup_store};
+
+use dotenv;
 
 #[tokio::main]
 async fn main() -> Result<(), handle_errors::Error> {

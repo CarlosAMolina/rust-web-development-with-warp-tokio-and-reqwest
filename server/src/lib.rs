@@ -1,8 +1,5 @@
 #![warn(clippy::all)]
 
-use std::env;
-
-use dotenv;
 // use tracing_subscriber::fmt::format::FmtSpan;
 use warp::{http::Method, Filter, Reply};
 
