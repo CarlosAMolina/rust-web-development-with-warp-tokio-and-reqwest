@@ -8,11 +8,11 @@ use warp::{http::Method, Filter, Reply};
 
 use handle_errors::return_error;
 
-mod config;
+pub mod config;
 mod profanity;
 mod routes;
 mod store;
-mod types;
+pub mod types;
 
 async fn build_routes(store: store::Store) -> impl Filter<Extract = impl Reply> + Clone {
     let store_filter = warp::any().map(move || store.clone());
@@ -179,15 +179,4 @@ pub async fn run(config: config::Config, store: store::Store) {
     warp::serve(routes)
         .run(([0, 0, 0, 0], config.web_server_port))
         .await;
-}
-
-#[tokio::main]
-async fn main() -> Result<(), handle_errors::Error> {
-    // Initialize the .env file via the dotenv crate.
-    dotenv::dotenv().ok();
-    let config = config::Config::new().expect("Config can't be set");
-    let store = setup_store(&config).await?;
-    tracing::info!("Q&A service build ID {}", env!("RUST_WEB_DEV_VERSION"));
-    run(config, store).await;
-    Ok(())
 }
