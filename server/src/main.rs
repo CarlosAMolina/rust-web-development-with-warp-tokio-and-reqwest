@@ -139,20 +139,7 @@ async fn build_routes(store: store::Store) -> impl Filter<Extract = impl Reply> 
 
 }
 
-#[tokio::main]
-async fn main() -> Result<(), handle_errors::Error> {
-    // Initialize the .env file via the dotenv crate.
-    dotenv::dotenv().ok();
-    let config = config::Config::new().expect("Config can't be set");
-    // Set log level for the application.
-    // We pass three:
-    // - One for the server implementation: indicated by the
-    // application name (rust-web-dev) set in Cargo.toml.
-    // - One for Warp.
-    let log_filter = format!(
-        "handle_errors={},rust_web_dev={},warp={}",
-        config.log_level_handle_errors, config.log_level_rust_web_dev, config.log_level_warp
-    );
+pub async fn setup_store(config: &config::Config) -> Result<store::Store, handle_errors::Error> {
     let store = store::Store::new(&format!(
         "postgres://{}:{}@{}:{}/{}",
         config.database_user,
@@ -168,6 +155,15 @@ async fn main() -> Result<(), handle_errors::Error> {
         .run(&store.clone().connection)
         .await
         .map_err(|e| handle_errors::Error::MigrationError(e))?;
+    // Set log level for the application.
+    // We pass three:
+    // - One for the server implementation: indicated by the
+    // application name (rust-web-dev) set in Cargo.toml.
+    // - One for Warp.
+    let log_filter = format!(
+        "handle_errors={},rust_web_dev={},warp={}",
+        config.log_level_handle_errors, config.log_level_rust_web_dev, config.log_level_warp
+    );
     tracing_subscriber::fmt()
         // Use the filter we built above to determine which traces to record.
         .with_env_filter(log_filter)
@@ -176,7 +172,15 @@ async fn main() -> Result<(), handle_errors::Error> {
         // routes' durations!
         //.with_span_events(FmtSpan::CLOSE)
         .init();
+    Ok(store)
+}
 
+#[tokio::main]
+async fn main() -> Result<(), handle_errors::Error> {
+    // Initialize the .env file via the dotenv crate.
+    dotenv::dotenv().ok();
+    let config = config::Config::new().expect("Config can't be set");
+    let store = setup_store(&config).await?;
     tracing::info!("Q&A service build ID {}", env!("RUST_WEB_DEV_VERSION"));
 
     let routes = build_routes(store).await;
