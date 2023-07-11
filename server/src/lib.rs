@@ -183,7 +183,6 @@ pub async fn run(config: config::Config, store: store::Store) {
         .await;
 }
 
-
 pub async fn oneshot(store: store::Store) -> OneshotHandler {
     let routes = build_routes(store).await;
     let (tx, rx) = oneshot::channel::<i32>();
