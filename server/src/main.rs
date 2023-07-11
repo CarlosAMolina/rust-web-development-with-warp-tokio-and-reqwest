@@ -4,7 +4,7 @@ use std::env;
 
 use dotenv;
 // use tracing_subscriber::fmt::format::FmtSpan;
-use warp::{http::Method, Filter, Reply};
+use warp::{http::Method, Filter};
 
 use handle_errors::return_error;
 
@@ -14,8 +14,44 @@ mod routes;
 mod store;
 mod types;
 
-async fn build_routes(store: store::Store) -> impl Filter<Extract = impl Reply> + Clone {
+#[tokio::main]
+async fn main() -> Result<(), handle_errors::Error> {
+    // Initialize the .env file via the dotenv crate.
+    dotenv::dotenv().ok();
+    let config = config::Config::new().expect("Config can't be set");
+    // Set log level for the application.
+    // We pass three:
+    // - One for the server implementation: indicated by the
+    // application name (rust-web-dev) set in Cargo.toml.
+    // - One for Warp.
+    let log_filter = format!(
+        "handle_errors={},rust_web_dev={},warp={}",
+        config.log_level_handle_errors, config.log_level_rust_web_dev, config.log_level_warp
+    );
+    let store = store::Store::new(&format!(
+        "postgres://{}:{}@{}:{}/{}",
+        config.database_user,
+        config.database_password,
+        config.database_host,
+        config.database_port,
+        config.database_name
+    ))
+    .await
+    .map_err(|e| handle_errors::Error::DatabaseQueryError(e))?;
+    // https://docs.rs/sqlx/latest/sqlx/macro.migrate.html
+    sqlx::migrate!()
+        .run(&store.clone().connection)
+        .await
+        .map_err(|e| handle_errors::Error::MigrationError(e))?;
     let store_filter = warp::any().map(move || store.clone());
+    tracing_subscriber::fmt()
+        // Use the filter we built above to determine which traces to record.
+        .with_env_filter(log_filter)
+        // Record an event when each span closes.
+        // This can be used to time our
+        // routes' durations!
+        //.with_span_events(FmtSpan::CLOSE)
+        .init();
 
     let cors = warp::cors()
         .allow_any_origin()
@@ -121,7 +157,8 @@ async fn build_routes(store: store::Store) -> impl Filter<Extract = impl Reply> 
         .and(store_filter.clone())
         .and(warp::body::json())
         .and_then(routes::authentication::login);
-    add_answer
+
+    let routes = add_answer
         .or(add_question)
         .or(delete_question)
         .or(get_answers)
@@ -134,48 +171,11 @@ async fn build_routes(store: store::Store) -> impl Filter<Extract = impl Reply> 
         .with(cors)
         .with(warp::trace::request())
         .recover(return_error);
-}
 
-pub async fn setup_store(config: &config::Config) -> Result<store::Store, handle_errors::Error> {
-    let store = store::Store::new(&format!(
-        "postgres://{}:{}@{}:{}/{}",
-        config.database_user,
-        config.database_password,
-        config.database_host,
-        config.database_port,
-        config.database_name
-    ))
-    .await
-    .map_err(|e| handle_errors::Error::DatabaseQueryError(e))?;
-    // https://docs.rs/sqlx/latest/sqlx/macro.migrate.html
-    sqlx::migrate!()
-        .run(&store.clone().connection)
-        .await
-        .map_err(|e| handle_errors::Error::MigrationError(e))?;
-    // Set log level for the application.
-    // We pass three:
-    // - One for the server implementation: indicated by the
-    // application name (rust-web-dev) set in Cargo.toml.
-    // - One for Warp.
-    let log_filter = format!(
-        "handle_errors={},rust_web_dev={},warp={}",
-        config.log_level_handle_errors, config.log_level_rust_web_dev, config.log_level_warp
-    );
-    tracing_subscriber::fmt()
-        // Use the filter we built above to determine which traces to record.
-        .with_env_filter(log_filter)
-        // Record an event when each span closes.
-        // This can be used to time our
-        // routes' durations!
-        //.with_span_events(FmtSpan::CLOSE)
-        .init();
-    Ok(store)
-}
-
-pub async fn run(config: config::Config, store: store::Store) {
-    let routes = build_routes(store).await;
+    tracing::info!("Q&A service build ID {}", env!("RUST_WEB_DEV_VERSION"));
     // We use the address 0.0.0.0 (means all IP4 addresses on the local machine) because when operating within a container, we need access from the outside.
     warp::serve(routes)
         .run(([0, 0, 0, 0], config.web_server_port))
         .await;
+    Ok(())
 }
