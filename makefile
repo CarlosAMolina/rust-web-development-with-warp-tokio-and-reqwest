@@ -124,3 +124,6 @@ login-error-account-not-in-db:
 		--header 'Content-Type: application/json' \
 		--data-raw '{ "email": "invented@foo.com", "password": "invented_pw" }'
 
+run-tests:
+	cd server && cargo test && cd integration-tests && cargo run
+
